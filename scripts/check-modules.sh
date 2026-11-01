@@ -97,7 +97,7 @@ consumer_check() (
   export GOSUMDB=sum.golang.org GOPRIVATE= GONOPROXY= GONOSUMDB= GOFLAGS=
   go mod init automata-release-smoke
   attempt=1
-  until go get "$declared@$version"; do
+  until go get "$package@$version"; do
     [ "$attempt" -lt 6 ] || { fail "published module is not resolvable after six attempts; do not move its tag"; return 1; }
     printf '==> waiting for module proxy/checksum availability (attempt %s/6)\n' "$attempt" >&2
     sleep "$((5 * (1 << (attempt - 1))))"

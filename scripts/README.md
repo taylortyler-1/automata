@@ -104,8 +104,9 @@ runs in this same workflow after publication; it does not depend on a tag push
 triggering another workflow through `GITHUB_TOKEN`.
 
 Consumer verification uses a temporary module, a fresh module cache,
-`GOWORK=off`, `proxy.golang.org`, and `sum.golang.org`. It requests the exact
-version, rejects replacements/version drift, and compiles an import smoke test.
+`GOWORK=off`, `proxy.golang.org`, and `sum.golang.org`. It installs the inventory's smoke package at the exact module version so Go
+resolves package dependencies even when the module root has no Go files, rejects
+replacements/version drift, and compiles an import smoke test.
 It makes no live provider calls. Proxy/checksum propagation receives six bounded
 attempts with exponential delays; no direct-fetch fallback masks a proxy failure.
 
