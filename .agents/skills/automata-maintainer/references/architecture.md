@@ -67,6 +67,17 @@ adapters and read each adapter's `AGENTS.md` when a shared contract changes.
 Preserve provider-native content through `RawBlock`; keep streaming and
 non-streaming response semantics aligned per adapter.
 
+### Local filesystem read safety
+
+`tools.LocalFS` reads only regular files. Preserve `os.Root` confinement and
+in-root symlinks to regular files. A path `Stat` alone is insufficient: the path
+can change before opening. Unix opens use `O_NONBLOCK`, then the opened
+descriptor is checked before any read. Keep deterministic tests for rejecting a
+FIFO descriptor as well as an unchanged FIFO path; do not generalize this to
+cancellation guarantees for arbitrary filesystems or custom `FileSystem`s.
+See `tools/fs.go`, `tools/fs_open_*.go`, and `tools/fs_fifo_unix_test.go`.
+This hardening is merged source, pending a tools release after v0.6.0.
+
 ## Verification ladder
 
 Apply the affected package's own `AGENTS.md` rules first; they override this

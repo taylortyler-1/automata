@@ -70,8 +70,10 @@ preserved through `RawBlock`. Vendor SDK types never cross into `core`.
 State the observable contract and failure behavior the change must preserve,
 then make the smallest coherent patch. Add table-driven tests at the layer
 where the behavior is observable, using fake providers; live model calls never
-belong in unit tests. Update docs and runnable examples when exported behavior
-changes.
+belong in unit tests. Lifecycle regression fixtures must verify the persisted
+state that commands consume, not only a projected `Snapshot` view: an
+unregistered ready run is displayed as needs-attention without changing its
+stored state. Update docs and runnable examples when exported behavior changes.
 
 ## 5. Validate proportionally to risk
 
@@ -97,7 +99,11 @@ override the generic ladder below. Then:
    versions. A module that uses unreleased core passes the workspace but not
    `GOWORK=off` until core is released and its requirement is bumped.
 4. Build affected examples without credentials. Live provider calls are opt-in
-   integration checks and are never required for ordinary validation.
+   integration checks and are never required for ordinary validation. For
+   platform-specific fixes, cross-compile tests for affected targets: a runtime
+   skip cannot hide an unavailable syscall. Float-to-duration overflow differs
+   by architecture; validate retry saturation on amd64 as well as arm64 when
+   available.
 5. Report commands actually run with results, failures, deliberately skipped
    checks, and residual risk. Never present proposed validation as executed.
 
@@ -110,6 +116,8 @@ not coordinated release numbers. Publish dependencies first, finalize each
 consumer's requirements and checksums in an ordinary PR with
 `GOWORK=off go mod tidy`, and pass `scripts/check-modules.sh release <module>` before dispatch.
 Wait for public-proxy consumer verification before releasing the next module.
+A local merge or passing release-readiness check is not publication evidence;
+keep skill/docs claims about pending fixes separate from published guarantees.
 
 The v0.6 shipping baseline is core `v0.6.0`, SQLite `v0.5.3` (including the
 cancellation/reopen fix), HTTP `v0.6.0`, and host `v0.6.0`. Other modules retain

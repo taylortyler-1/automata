@@ -169,6 +169,12 @@ type Retryable interface { Retryable() bool }
 
 are retried. Context cancellation/deadlines never retry. Leave `RetryUnknown` false unless replaying every unknown provider failure is known to be safe.
 
+`MaxDelay` caps the nominal delay before downward jitter; `MaxDelay <= 0`
+disables that cap. Prefer a finite positive cap for production retries. The
+current repository source saturates an overflowing jittered delay at the largest
+`time.Duration` instead of allowing a negative wait; this is pending core
+v0.6.2 publication, not guaranteed by the v0.6.0 baseline.
+
 Tools own a separate retry decision:
 
 ```go
@@ -189,8 +195,8 @@ go get github.com/emotional-data8482/automata/tools@latest
 core.AgentConfig{Tools: []core.Tool{tools.ReadFile(workspaceRoot), tools.WriteFile(workspaceRoot)}}
 ```
 
-- `ReadFile` exposes `read_file`, uses `os.Root` to reject traversal/symlink escapes, and truncates after 256 KiB.
-- `WriteFile` exposes `write_file`, uses `os.Root`, creates parent directories, and replaces complete file content. It is a mutating binding and reports a content-digest receipt. Published tools v0.5.2 has a permanent path semantic guard that rejects later writes after an applied or unresolved write. The current repository source removes that guard so new model calls can revise or restore content, and reports pre-write failures as `EffectNotApplied`; that change needs a separate tools release and is not delivered by upgrading core alone.
+- `ReadFile` exposes `read_file`, uses `os.Root` to reject traversal/symlink escapes, and truncates after 256 KiB. Current repository `LocalFS` reads reject non-regular files, including FIFOs and devices; symlinks to regular files inside the root still work. Unix opens are nonblocking and the opened descriptor is checked before reading, preventing a FIFO substitution from hanging the open. This hardening is pending a tools release after v0.6.0; upgrading core alone does not deliver it. Custom `FileSystem` implementations must enforce their own read safety and context handling.
+- `WriteFile` exposes `write_file`, uses `os.Root`, creates parent directories, and replaces complete file content. It is a mutating binding and reports a content-digest receipt. Tools v0.6.0 allows new model calls to revise or restore content without a permanent path semantic guard, and reports pre-write failures as `EffectNotApplied`. Older tools v0.5.2 retains that guard; upgrading core alone does not change the tools implementation.
 - Give read and write tools only to roles that need them. An isolated root limits filesystem scope but does not provide per-file authorization, version preconditions, conflict detection, audit persistence, or rollback.
 
 ### AGENTS.md Instructions

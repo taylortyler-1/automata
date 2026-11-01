@@ -17,6 +17,7 @@ This skill targets core v0.6.0 and the Runtime API, first released in v0.5.0. Di
 
 1. **Inspect the application first**
    - Read `go.mod`, provider wiring, tools, prompts, run entry points, and tests.
+   - Distinguish the installed module's published behavior from checkout-only fixes; a local merge or passing release check does not publish a module. See the version notes in [Providers and tools](references/providers-and-tools.md).
    - Decide whether runs must survive a restart. If so, use a persistent store (`extensions/sqlite`); otherwise `core.NewEphemeralRuntime()`.
    - Do not introduce child agents unless distinct roles, tools, or permissions justify them.
 
