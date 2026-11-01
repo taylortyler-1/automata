@@ -60,6 +60,28 @@ func TestReadFileTruncatesLargeFile(t *testing.T) {
 	}
 }
 
+func TestLocalReadFileRejectsDirectory(t *testing.T) {
+	root := t.TempDir()
+	_, err := LocalFS(root).ReadFile(context.Background(), ".", readMaxBytes)
+	if err == nil || !strings.Contains(err.Error(), "not a regular file") {
+		t.Fatalf("ReadFile(directory) = %v; want non-regular-file error", err)
+	}
+}
+
+func TestLocalReadFileFollowsRegularSymlink(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "file"), []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("file", filepath.Join(root, "link")); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+	data, err := LocalFS(root).ReadFile(context.Background(), "link", readMaxBytes)
+	if err != nil || string(data) != "hello" {
+		t.Fatalf("ReadFile(symlink) = %q, %v; want hello", data, err)
+	}
+}
+
 func TestSandboxRejectsEscapes(t *testing.T) {
 	parent := t.TempDir()
 	root := filepath.Join(parent, "root")

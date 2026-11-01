@@ -50,7 +50,8 @@ var ErrNotWritten = errors.New("file not written")
 
 // LocalFS returns a [FileSystem] rooted at the host directory root. Path
 // traversal and symlinks that escape the root are rejected by [os.Root], not
-// by string cleaning. Its EffectScope is "filesystem:" plus the absolute root.
+// by string cleaning. Reads accept only regular files. Its EffectScope is
+// "filesystem:" plus the absolute root.
 func LocalFS(root string) FileSystem { return localFS{root: root} }
 
 type localFS struct{ root string }
@@ -67,11 +68,32 @@ func (l localFS) ReadFile(_ context.Context, name string, limit int64) ([]byte, 
 	}
 	defer r.Close()
 
-	f, err := r.Open(name)
+	// Reject special files before opening them. On Unix the open itself is
+	// nonblocking, so replacing a checked file with a FIFO cannot hang it.
+	info, err := r.Stat(name)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("read %s: not a regular file", name)
+	}
+	f, err := openLocalReadFile(r, name)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
+	return readLocalRegularFile(f, limit)
+}
+
+func readLocalRegularFile(f *os.File, limit int64) ([]byte, error) {
+	// Validate the opened descriptor too: the path can change after Stat.
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("read %s: not a regular file", f.Name())
+	}
 	return io.ReadAll(io.LimitReader(f, limit))
 }
 
