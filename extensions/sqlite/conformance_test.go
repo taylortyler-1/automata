@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/core/storetest"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/core/storetest"
 )
 
 // The SQLite adapter must satisfy the same storage contract as the in-memory

@@ -1,3 +1,3 @@
-module github.com/emotional-data8482/automata
+module github.com/taylortyler-1/automata
 
 go 1.26.2

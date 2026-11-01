@@ -178,7 +178,7 @@ func TestAnswer(t *testing.T) {
 }
 ```
 
-Import `github.com/emotional-data8482/automata/core/coretest`. Use `NewStreamProvider` for streaming, `ToolCall`/`ToolCalls` for tool turns, and `Requests()` to inspect what the provider saw. `ReusableStore` permits a memory-backed close/reopen fixture; it is not a substitute for SQLite process-crash tests.
+Import `github.com/taylortyler-1/automata/core/coretest`. Use `NewStreamProvider` for streaming, `ToolCall`/`ToolCalls` for tool turns, and `Requests()` to inspect what the provider saw. `ReusableStore` permits a memory-backed close/reopen fixture; it is not a substitute for SQLite process-crash tests.
 
 For restart-sensitive responses, implement a scripted `core.Provider` that returns `core.Response{Message: core.AssistantMessage(...), StopReason: core.StopToolUse or StopEndTurn}` and run agents through `core.NewEphemeralRuntime()`. Deterministic providers that decide from the request transcript (not a call counter) keep working across restarts in multi-process tests.
 

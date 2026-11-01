@@ -1,10 +1,10 @@
 ---
 name: automata-go
-description: Build, extend, review, and troubleshoot agentic Go applications with github.com/emotional-data8482/automata. Use when creating tool-using agents, durable runs that survive restarts, typed outputs, child agents, conversations, approvals, live streams and tool progress, provider integrations, MCP tool servers, or production-safe agent services in Go.
+description: Build, extend, review, and troubleshoot agentic Go applications with github.com/taylortyler-1/automata. Use when creating tool-using agents, durable runs that survive restarts, typed outputs, child agents, conversations, approvals, live streams and tool progress, provider integrations, MCP tool servers, or production-safe agent services in Go.
 license: Apache-2.0
 compatibility: "Automata core v0.6.0+; SQLite v0.5.3+; HTTP and host v0.6.0+ when used; other modules are independently versioned; Go 1.26.2+; provider credentials are needed only for live runs"
 metadata:
-  package: github.com/emotional-data8482/automata
+  package: github.com/taylortyler-1/automata
 ---
 
 # Build Agentic Go Apps with Automata
@@ -22,8 +22,8 @@ This skill targets core v0.6.0 and the Runtime API, first released in v0.5.0. Di
    - Do not introduce child agents unless distinct roles, tools, or permissions justify them.
 
 2. **Add only the modules in use**
-   - Core: `github.com/emotional-data8482/automata/core` (no dependencies)
-   - Persistent store: `github.com/emotional-data8482/automata/extensions/sqlite`
+   - Core: `github.com/taylortyler-1/automata/core` (no dependencies)
+   - Persistent store: `github.com/taylortyler-1/automata/extensions/sqlite`
    - Anthropic: `.../extensions/claude`; OpenAI-compatible: `.../extensions/openai`; OpenRouter: `.../extensions/openrouter`
    - First-party tools: `.../tools`; Tavily search backend: `.../extensions/tavily`
    - MCP servers: `.../extensions/mcp` (`mcpclient` exposes a server's tools as `core.Tool`s; `mcpserver` serves `core.Tool`s to MCP clients)
@@ -68,8 +68,8 @@ import (
     "os"
     "time"
 
-    "github.com/emotional-data8482/automata/core"
-    "github.com/emotional-data8482/automata/extensions/claude"
+    "github.com/taylortyler-1/automata/core"
+    "github.com/taylortyler-1/automata/extensions/claude"
 )
 
 type timeArgs struct {

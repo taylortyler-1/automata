@@ -12,7 +12,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // --- agent → TUI bridge messages produced by tools ------------------------

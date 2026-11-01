@@ -1,10 +1,10 @@
-module github.com/emotional-data8482/automata/examples/claude
+module github.com/taylortyler-1/automata/examples/claude
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.5.2
-	github.com/emotional-data8482/automata/extensions/claude v0.5.2
+	github.com/taylortyler-1/automata v0.5.2
+	github.com/taylortyler-1/automata/extensions/claude v0.5.2
 )
 
 require (
@@ -16,6 +16,6 @@ require (
 )
 
 replace (
-	github.com/emotional-data8482/automata => ../..
-	github.com/emotional-data8482/automata/extensions/claude => ../../extensions/claude
+	github.com/taylortyler-1/automata => ../..
+	github.com/taylortyler-1/automata/extensions/claude => ../../extensions/claude
 )

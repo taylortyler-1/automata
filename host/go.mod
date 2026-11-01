@@ -1,11 +1,11 @@
-module github.com/emotional-data8482/automata/host
+module github.com/taylortyler-1/automata/host
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.6.0
-	github.com/emotional-data8482/automata/extensions/httpserver v0.6.0
-	github.com/emotional-data8482/automata/extensions/sqlite v0.5.3
+	github.com/taylortyler-1/automata v0.6.0
+	github.com/taylortyler-1/automata/extensions/httpserver v0.6.0
+	github.com/taylortyler-1/automata/extensions/sqlite v0.5.3
 )
 
 require (

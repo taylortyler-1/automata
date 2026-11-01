@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/emotional-data8482/automata/extensions/mcp/mcpclient"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/extensions/mcp/mcpclient"
 )
 
 // TestStreamableFailures drives the streamable HTTP transport, which reports

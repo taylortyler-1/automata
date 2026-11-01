@@ -1,9 +1,9 @@
-module github.com/emotional-data8482/automata/extensions/mcp
+module github.com/taylortyler-1/automata/extensions/mcp
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.5.3
+	github.com/taylortyler-1/automata v0.5.3
 	github.com/google/jsonschema-go v0.4.3
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 )

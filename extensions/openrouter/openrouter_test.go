@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // minimalResult is the smallest valid non-streaming ChatResult.

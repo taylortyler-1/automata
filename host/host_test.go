@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/httpserver"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/httpserver"
 )
 
 // fakeProvider calls the ask tool for tasks containing "ask", answers "done"

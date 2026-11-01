@@ -6,11 +6,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/emotional-data8482/automata/agents"
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/claude"
-	"github.com/emotional-data8482/automata/extensions/tavily"
-	"github.com/emotional-data8482/automata/tools"
+	"github.com/taylortyler-1/automata/agents"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/claude"
+	"github.com/taylortyler-1/automata/extensions/tavily"
+	"github.com/taylortyler-1/automata/tools"
 )
 
 // researchParams is the assignment the orchestrator fills when calling the

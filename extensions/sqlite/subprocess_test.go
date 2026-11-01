@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // TestMain re-enters the test binary as a subprocess for cross-process

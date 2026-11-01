@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/google/jsonschema-go/jsonschema"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // decodeSDK decodes JSON the way the SDK hands a client an input schema:

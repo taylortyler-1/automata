@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // crashAfterWriteEnv makes the publish tool exit the process right after its

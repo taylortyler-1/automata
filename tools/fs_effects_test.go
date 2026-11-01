@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // Failures before the file is written change nothing, so they must not park

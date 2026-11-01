@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // Retention deletes through the SQLite adapter, and a pruned run's tombstone

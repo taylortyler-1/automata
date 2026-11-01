@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/browser"
-	"github.com/emotional-data8482/automata/extensions/openrouter"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/browser"
+	"github.com/taylortyler-1/automata/extensions/openrouter"
 )
 
 const defaultTask = "Visit https://en.wikipedia.org and choose a harmless, interesting topic to learn about. Use Wikipedia's search field and submit your query, then open a matching article if search results appear. Read the article and follow one internal Wikipedia link to a related article. Report the exact search query, the titles and final URLs of both articles you actually visited, and three interesting facts you observed, identifying which article each fact came from. Briefly explain why you chose the topic. If you encounter a CAPTCHA or an access block, follow your captcha instructions rather than bypassing it, and never invent facts."

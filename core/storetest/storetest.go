@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // Conformance runs the full storage contract suite against a Store produced by

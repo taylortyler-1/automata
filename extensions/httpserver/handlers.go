@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 func (s *Server) decode(w http.ResponseWriter, r *http.Request, into any) bool {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/emotional-data8482/automata/retry"
+	"github.com/taylortyler-1/automata/retry"
 	"reflect"
 	"strings"
 	"time"

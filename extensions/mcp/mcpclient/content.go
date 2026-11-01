@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // toolResult converts a completed call. Content blocks are authoritative;

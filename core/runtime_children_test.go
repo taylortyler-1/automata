@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/retry"
+	"github.com/taylortyler-1/automata/retry"
 )
 
 // childTestDefinition is a minimal valid input schema for a declared child

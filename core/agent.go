@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"reflect"
 
-	"github.com/emotional-data8482/automata/retry"
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/retry"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 // Agent is an immutable executable definition: a provider plus the frozen

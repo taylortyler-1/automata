@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/emotional-data8482/automata/retry"
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/retry"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 // runAgent runs task on agent the only way an Agent runs: admitted to a fresh

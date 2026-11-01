@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/retry"
+	"github.com/taylortyler-1/automata/retry"
 )
 
 type limiterFunc func(context.Context) error

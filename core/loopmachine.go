@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 type loopState uint8

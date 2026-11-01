@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/sqlite"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/sqlite"
 )
 
 // host is one short-lived process: it owns the store until it exits.

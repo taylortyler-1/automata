@@ -1,13 +1,13 @@
-module github.com/emotional-data8482/automata/examples/openai
+module github.com/taylortyler-1/automata/examples/openai
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.5.2
-	github.com/emotional-data8482/automata/extensions/openai v0.5.2
+	github.com/taylortyler-1/automata v0.5.2
+	github.com/taylortyler-1/automata/extensions/openai v0.5.2
 )
 
 replace (
-	github.com/emotional-data8482/automata => ../..
-	github.com/emotional-data8482/automata/extensions/openai => ../../extensions/openai
+	github.com/taylortyler-1/automata => ../..
+	github.com/taylortyler-1/automata/extensions/openai => ../../extensions/openai
 )

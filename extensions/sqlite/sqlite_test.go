@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // The schema stamp is a fixed literal because SQLite cannot bind PRAGMA

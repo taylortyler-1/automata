@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 func TestDurableWaitAndEffectWrappersComposeInEitherOrder(t *testing.T) {

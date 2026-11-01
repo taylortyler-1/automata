@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // Summary verifies ownership and status without depending on readable history.

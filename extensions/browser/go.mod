@@ -1,9 +1,9 @@
-module github.com/emotional-data8482/automata/extensions/browser
+module github.com/taylortyler-1/automata/extensions/browser
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.6.0
+	github.com/taylortyler-1/automata v0.6.0
 	github.com/go-rod/rod v0.116.2
 )
 

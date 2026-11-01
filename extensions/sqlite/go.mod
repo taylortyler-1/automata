@@ -1,9 +1,9 @@
-module github.com/emotional-data8482/automata/extensions/sqlite
+module github.com/taylortyler-1/automata/extensions/sqlite
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.5.2
+	github.com/taylortyler-1/automata v0.5.2
 	modernc.org/sqlite v1.51.0
 )
 

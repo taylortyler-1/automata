@@ -10,7 +10,7 @@ import (
 
 	orsdk "github.com/OpenRouterTeam/go-sdk"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 func textMsg(role, text string) core.Message {

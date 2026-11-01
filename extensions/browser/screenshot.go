@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
+	"github.com/taylortyler-1/automata/core"
 )
 
 const (

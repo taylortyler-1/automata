@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // The examples run against scripted providers so they are deterministic and

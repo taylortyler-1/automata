@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // turnScript answers by the number of assistant turns already in the request,

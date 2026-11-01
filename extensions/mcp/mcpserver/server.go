@@ -33,10 +33,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // AddTools registers tools on server. It validates every tool before

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 var (

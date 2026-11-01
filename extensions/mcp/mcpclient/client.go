@@ -54,11 +54,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/core"
 )
 
-const modulePath = "github.com/emotional-data8482/automata/extensions/mcp"
+const modulePath = "github.com/taylortyler-1/automata/extensions/mcp"
 
 // Options configures [Connect]. The zero value is valid.
 type Options struct {

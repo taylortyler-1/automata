@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/core/coretest"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/core/coretest"
 )
 
 func TestNormalizeHost(t *testing.T) {
