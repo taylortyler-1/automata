@@ -1,7 +1,7 @@
-github.com/emotional-data8482/automata v0.6.0 h1:HNkHjPQ5P48F9tpSi3gJd0B9iXQ1KS6uNcjLGwvALVU=
-github.com/emotional-data8482/automata v0.6.0/go.mod h1:cdZWiuUvSP4zSH85Md2TE3ASj2SUy4yt29TOfSHE/K8=
 github.com/go-rod/rod v0.116.2 h1:A5t2Ky2A+5eD/ZJQr1EfsQSe5rms5Xof/qj296e+ZqA=
 github.com/go-rod/rod v0.116.2/go.mod h1:H+CMO9SCNc2TJ2WfrG+pKhITz57uGNYU43qYHh438Mg=
+github.com/taylortyler-1/automata v0.6.3 h1:k7SFXV+NwewhvWolLJ7mb23Zc/Mq5YKFvQw2ca/qW6E=
+github.com/taylortyler-1/automata v0.6.3/go.mod h1:ESB7wfh5gqu8VhJ739T8L2PC0pUGhMEcQ8/CxIBWE24=
 github.com/ysmood/fetchup v0.2.3 h1:ulX+SonA0Vma5zUFXtv52Kzip/xe7aj4vqT5AJwQ+ZQ=
 github.com/ysmood/fetchup v0.2.3/go.mod h1:xhibcRKziSvol0H1/pj33dnKrYyI2ebIvz5cOOkYGns=
 github.com/ysmood/goob v0.4.0 h1:HsxXhyLBeGzWXnqVKtmT9qM7EuVs/XOgkX7T6r1o1AQ=

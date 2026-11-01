@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/anthropics/anthropic-sdk-go v1.21.0
-	github.com/taylortyler-1/automata v0.5.2
+	github.com/taylortyler-1/automata v0.6.3
 )
 
 require (

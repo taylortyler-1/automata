@@ -3,9 +3,9 @@ module github.com/taylortyler-1/automata/extensions/mcp
 go 1.26.2
 
 require (
-	github.com/taylortyler-1/automata v0.5.3
 	github.com/google/jsonschema-go v0.4.3
 	github.com/modelcontextprotocol/go-sdk v1.8.0
+	github.com/taylortyler-1/automata v0.6.3
 )
 
 require (
