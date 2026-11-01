@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"testing"
 	"time"
 )
@@ -294,6 +295,62 @@ func TestBackoffZeroMultiplierDefaultsToOne(t *testing.T) {
 		// Multiplier defaults to 1, so nominal stays InitialDelay every attempt.
 		if d < 500*time.Millisecond || d >= time.Second {
 			t.Errorf("attempt %d: backoff %v outside [500ms, 1s)", attempt, d)
+		}
+	}
+}
+
+// TestBackoffSaturatesWithoutCap pins that uncapped exponential growth
+// saturates at the largest Duration instead of overflowing to a negative
+// value, which would make time.After fire immediately.
+func TestBackoffSaturatesWithoutCap(t *testing.T) {
+	cfg := Config{InitialDelay: time.Second, Multiplier: 2}
+	for attempt := 30; attempt <= 40; attempt++ {
+		nominal := float64(cfg.InitialDelay) * math.Pow(cfg.Multiplier, float64(attempt))
+		low := time.Duration(math.MaxInt64 / 2)
+		if nominal < math.MaxInt64 {
+			low = time.Duration(nominal * 0.5)
+		}
+		for range 200 {
+			d := backoff(cfg, attempt)
+			if d < low || d < 0 {
+				t.Fatalf("attempt %d: backoff %v below %v", attempt, d, low)
+			}
+		}
+	}
+	if d := backoff(Config{InitialDelay: time.Second, Multiplier: math.MaxFloat64}, 10); d != math.MaxInt64 {
+		t.Errorf("infinite nominal delay: backoff = %v, want %v", d, time.Duration(math.MaxInt64))
+	}
+}
+
+// TestBackoffCappedAtLargeAttempts pins that the MaxDelay cap still holds once
+// the nominal delay has overflowed int64.
+func TestBackoffCappedAtLargeAttempts(t *testing.T) {
+	cfg := Config{InitialDelay: time.Second, MaxDelay: time.Minute, Multiplier: 2}
+	for attempt := 30; attempt <= 40; attempt++ {
+		for range 200 {
+			d := backoff(cfg, attempt)
+			if d < cfg.MaxDelay/2 || d >= cfg.MaxDelay {
+				t.Fatalf("attempt %d: backoff %v outside [%v, %v)",
+					attempt, d, cfg.MaxDelay/2, cfg.MaxDelay)
+			}
+		}
+	}
+}
+
+// TestBackoffNegativeMultiplierNeverNegative pins that a negative multiplier,
+// whose odd powers are negative, yields a zero wait rather than a negative
+// Duration, and never exceeds the cap.
+func TestBackoffNegativeMultiplierNeverNegative(t *testing.T) {
+	for _, maxDelay := range []time.Duration{0, time.Minute} {
+		cfg := Config{InitialDelay: time.Second, MaxDelay: maxDelay, Multiplier: -2}
+		for attempt := range 41 {
+			d := backoff(cfg, attempt)
+			if d < 0 {
+				t.Fatalf("MaxDelay %v attempt %d: backoff %v is negative", maxDelay, attempt, d)
+			}
+			if maxDelay > 0 && d >= maxDelay {
+				t.Fatalf("MaxDelay %v attempt %d: backoff %v exceeds cap", maxDelay, attempt, d)
+			}
 		}
 	}
 }
