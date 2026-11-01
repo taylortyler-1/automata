@@ -77,28 +77,31 @@ func TestRuntimeCancelOfNeedsAttentionRunDeliversHooks(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = runtime.Close() })
-	ready := storedRuntimeRun{
+	record := storedRuntimeRun{
 		Version: runtimeEncodingVersion, RunID: "attention-run", DefinitionID: "agent",
-		DefinitionRevision: "missing", Task: "work", State: RuntimeReady,
+		DefinitionRevision: "missing", Task: "work", State: RuntimeNeedsAttention,
 		Generation: 1, Result: RunResult{RunID: "attention-run"},
+		AttentionKind: AttentionExecution, AttentionReason: ErrDefinitionNotRegistered.Error(),
 	}
 	if err := runtime.transaction(context.Background(), true, func(tx StoreTransaction) error {
-		return putRuntimeRun(tx, ready)
+		return putRuntimeRun(tx, record)
 	}); err != nil {
 		t.Fatal(err)
 	}
-	// Recover parks a run whose definition is not registered in attention.
-	if err := runtime.Recover(context.Background()); err != nil {
+	// Check the persisted state: Snapshot also projects unregistered ready
+	// runs as needs-attention, which would exercise the ready cancel path.
+	stored, err := runtime.compactRecord(context.Background(), record.RunID)
+	if err != nil {
 		t.Fatal(err)
 	}
-	snapshot, err := runtime.Handle(ready.RunID).Snapshot(context.Background())
-	if err != nil || snapshot.State != RuntimeNeedsAttention {
-		t.Fatalf("setup snapshot = %s, %v; want needs-attention", snapshot.State, err)
+	if stored.State != RuntimeNeedsAttention || stored.AttentionKind != AttentionExecution || stored.AttentionReason != record.AttentionReason {
+		t.Fatalf("setup record = %s attention %s %q; want persisted execution attention %q",
+			stored.State, stored.AttentionKind, stored.AttentionReason, record.AttentionReason)
 	}
-	if err := runtime.Handle(ready.RunID).Cancel(context.Background()); err != nil {
+	if err := runtime.Handle(record.RunID).Cancel(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	assertCanceledOnceWithHook(t, runtime, ready.RunID, seen())
+	assertCanceledOnceWithHook(t, runtime, record.RunID, seen())
 }
 
 // A run whose cancellation was requested while running, and whose worker
