@@ -6,6 +6,11 @@ INVENTORY="$ROOT/scripts/modules.json"
 
 fail() { printf 'error: %s\n' "$*" >&2; return 1; }
 
+release_repository() {
+  jq -er '.repository | strings | select(test("^[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+$"))' "$INVENTORY" ||
+    fail "configure a canonical owner/repository in scripts/modules.json"
+}
+
 module_record() {
   jq -ce --arg path "$1" '.modules[] | select(.path == $path)' "$INVENTORY" ||
     fail "unknown module: $1"
@@ -116,7 +121,7 @@ publish_release() (
     { fail "publication is only allowed in the approved GitHub Actions job"; return 1; }
   [ "${GITHUB_REF:-}" = "refs/heads/${RELEASE_DEFAULT_BRANCH:-main}" ] ||
     { fail "dispatch releases from the default branch"; return 1; }
-  repo="$(jq -r '.module | ltrimstr("github.com/")' "$INVENTORY")"
+  repo="$(release_repository)" || return 1
   [ "${GITHUB_REPOSITORY:-}" = "$repo" ] ||
     { fail "publication is only allowed in $repo (not a fork)"; return 1; }
   protected="$(gh api "repos/$repo/environments/release" --jq \

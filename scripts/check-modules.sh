@@ -5,6 +5,7 @@ source "$(dirname "$0")/release-lib.sh"
 
 inventory_check() {
   local path expected actual root_info
+  release_repository >/dev/null
   jq -e '
     (.module | type == "string") and
     (.modules | length > 0) and

@@ -165,7 +165,7 @@ class ReleaseToolsTest(unittest.TestCase):
                         FAKE_ROOT=str(self.root), FAKE_BASE=BASE,
                         GITHUB_ACTIONS="true", AUTOMATA_RELEASE_APPROVED="true",
                         GITHUB_REF="refs/heads/main", RELEASE_DEFAULT_BRANCH="main",
-                        GITHUB_REPOSITORY="emotional-data8482/automata")
+                        GITHUB_REPOSITORY=inventory["repository"])
         self.env.pop("GH_TOKEN", None)
         self.env.pop("GITHUB_TOKEN", None)
 
@@ -283,6 +283,34 @@ class ReleaseToolsTest(unittest.TestCase):
                 self.env[field] = value
                 self.assertNotEqual(self.definition("publish_release", "tools", "v0.5.3", SHA).returncode, 0)
                 self.env[field] = original
+        self.assert_no_publication()
+
+    def test_repository_identity_is_independent_of_module_path(self):
+        self.assertNotEqual(self.inventory["repository"], BASE.removeprefix("github.com/"))
+        self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
+        api = next(e for e in self.commands("gh") if e["args"][:1] == ["api"])
+        self.assertEqual(api["args"][1], f"repos/{self.inventory['repository']}/environments/release")
+        create = next(e for e in self.commands("gh") if e["args"][:2] == ["release", "create"])
+        self.assertEqual(create["args"][create["args"].index("--repo") + 1], self.inventory["repository"])
+        self.assertIn(f"go get {BASE}/tools@v0.5.3", create["notes"])
+
+    def test_old_repository_identity_cannot_publish(self):
+        self.env["GITHUB_REPOSITORY"] = BASE.removeprefix("github.com/")
+        result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not a fork", result.stderr)
+        self.assert_no_publication()
+
+    def test_invalid_repository_configuration_fails_closed(self):
+        for repository in (None, "", "https://github.com/owner/repo", "owner/repo/extra", 42):
+            with self.subTest(repository=repository):
+                inventory = dict(self.inventory)
+                inventory["repository"] = repository
+                (self.root / "scripts/modules.json").write_text(json.dumps(inventory))
+                self.assertNotEqual(self.check("inventory").returncode, 0)
+                result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("canonical owner/repository", result.stderr)
         self.assert_no_publication()
 
     def test_missing_required_reviewer_fails_closed(self):
