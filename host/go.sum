@@ -1,11 +1,5 @@
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
-github.com/emotional-data8482/automata v0.6.0 h1:HNkHjPQ5P48F9tpSi3gJd0B9iXQ1KS6uNcjLGwvALVU=
-github.com/emotional-data8482/automata v0.6.0/go.mod h1:cdZWiuUvSP4zSH85Md2TE3ASj2SUy4yt29TOfSHE/K8=
-github.com/emotional-data8482/automata/extensions/httpserver v0.6.0 h1:aytzsiirmDq/hv2UkC4UFcCqPhjL7WBgcLYI/PUcvjE=
-github.com/emotional-data8482/automata/extensions/httpserver v0.6.0/go.mod h1:aid1m7j2+6vLNcOKWrDgVRyWvCKcprx1yLTXCUM3Etc=
-github.com/emotional-data8482/automata/extensions/sqlite v0.5.3 h1:+gxwL2jfNNM9oWAP6NZ6Rrq4rbrvg6c8LgAPl+QPP4k=
-github.com/emotional-data8482/automata/extensions/sqlite v0.5.3/go.mod h1:WAXU8tukXgkIXpubphOCYKo3Rv5nltriqViH7ctAqtk=
 github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e h1:ijClszYn+mADRFY17kjQEVQ1XRhq2/JR1M3sGqeJoxs=
 github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e/go.mod h1:boTsfXsheKC2y+lKOCMpSfarhxDeIzfZG1jqGcPl3cA=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
@@ -18,6 +12,12 @@ github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOF
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
+github.com/taylortyler-1/automata v0.6.3 h1:k7SFXV+NwewhvWolLJ7mb23Zc/Mq5YKFvQw2ca/qW6E=
+github.com/taylortyler-1/automata v0.6.3/go.mod h1:ESB7wfh5gqu8VhJ739T8L2PC0pUGhMEcQ8/CxIBWE24=
+github.com/taylortyler-1/automata/extensions/httpserver v0.7.1 h1:FcrzbHzUX7T6XMjO4BCUiItqNu5IPj/GPhj8yJgXczc=
+github.com/taylortyler-1/automata/extensions/httpserver v0.7.1/go.mod h1:ne9VRvgtpTO1HxtZiajLBGp23iDd04YoW1jyi9yPHLA=
+github.com/taylortyler-1/automata/extensions/sqlite v0.5.5 h1:LPVndtmLti8qj7fs6SOkMJrrO/W6aqvCgzr8Q2FlLTA=
+github.com/taylortyler-1/automata/extensions/sqlite v0.5.5/go.mod h1:wtGrrEq7otj8nAB809EUXi27pF9q60ENrmipkwiQDCQ=
 golang.org/x/mod v0.37.0 h1:vF1DjpVEshcIqoEaauuHebaLk1O1forxjxBaVn884JQ=
 golang.org/x/mod v0.37.0/go.mod h1:m8S8VeM9r4dzDwjrKO0a1sZP3YjeMamRRlD+fmR2Q/0=
 golang.org/x/sync v0.22.0 h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=
