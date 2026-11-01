@@ -105,5 +105,20 @@ func backoff(cfg Config, attempt int) time.Duration {
 	// delay only, so a jittered delay never exceeds MaxDelay after the cap
 	// above. This decorrelates retries across concurrent callers.
 	delay *= 0.5 + rand.Float64()*0.5
+	return saturate(delay)
+}
+
+// saturate converts a float delay to a Duration without overflow. Exponential
+// growth with no cap reaches values past math.MaxInt64 (and eventually +Inf),
+// where a plain conversion wraps to a large negative Duration and retries fire
+// with no wait. NaN and negative delays (from a negative Multiplier or
+// InitialDelay) become zero.
+func saturate(delay float64) time.Duration {
+	switch {
+	case math.IsNaN(delay) || delay <= 0:
+		return 0
+	case delay >= math.MaxInt64:
+		return math.MaxInt64
+	}
 	return time.Duration(delay)
 }
