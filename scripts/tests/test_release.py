@@ -427,6 +427,10 @@ class ReleaseToolsTest(unittest.TestCase):
 
     def test_consumer_imports_inventory_subpackage(self):
         self.assert_success(self.check("consumer", "extensions/mcp", "v0.5.3"))
+        get = next(e for e in self.commands("go") if e["args"][:1] == ["get"])
+        self.assertEqual(get["args"], ["get", f"{BASE}/extensions/mcp/mcpclient@v0.5.3"])
+        selected = next(e for e in self.commands("go") if e["args"][:3] == ["list", "-m", "-json"])
+        self.assertEqual(selected["args"][3], f"{BASE}/extensions/mcp")
         build = next(e for e in self.commands("go") if e["args"][:1] == ["build"])
         self.assertIn(f'import _ "{BASE}/extensions/mcp/mcpclient"', build["source"])
         self.assert_no_publication()
@@ -438,6 +442,7 @@ class ReleaseToolsTest(unittest.TestCase):
         gets = [e for e in self.commands("go") if e["args"][:1] == ["get"]]
         self.assertEqual(len(gets), 3)
         for entry in gets:
+            self.assertEqual(entry["args"], ["get", f"{BASE}/core@v0.5.3"])
             self.assertEqual(entry["work"], "off")
             self.assertEqual(entry["proxy"], "https://proxy.golang.org")
             self.assertEqual(entry["sumdb"], "sum.golang.org")
