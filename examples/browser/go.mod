@@ -1,11 +1,11 @@
-module github.com/emotional-data8482/automata/examples/browser
+module github.com/taylortyler-1/automata/examples/browser
 
 go 1.26.2
 
 require (
-	github.com/emotional-data8482/automata v0.6.0
-	github.com/emotional-data8482/automata/extensions/browser v0.0.0
-	github.com/emotional-data8482/automata/extensions/openrouter v0.5.2
+	github.com/taylortyler-1/automata v0.6.0
+	github.com/taylortyler-1/automata/extensions/browser v0.0.0
+	github.com/taylortyler-1/automata/extensions/openrouter v0.5.2
 )
 
 require (
@@ -20,7 +20,7 @@ require (
 )
 
 replace (
-	github.com/emotional-data8482/automata => ../..
-	github.com/emotional-data8482/automata/extensions/browser => ../../extensions/browser
-	github.com/emotional-data8482/automata/extensions/openrouter => ../../extensions/openrouter
+	github.com/taylortyler-1/automata => ../..
+	github.com/taylortyler-1/automata/extensions/browser => ../../extensions/browser
+	github.com/taylortyler-1/automata/extensions/openrouter => ../../extensions/openrouter
 )

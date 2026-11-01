@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // SkillFile is the file that marks a directory as an Agent Skill.

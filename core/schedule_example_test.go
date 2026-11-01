@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // Exercise the same host-side helper used by the README's compiled recipe

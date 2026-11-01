@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // ErrScriptExhausted is returned when a scripted provider is called after its

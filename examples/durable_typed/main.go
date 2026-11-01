@@ -23,9 +23,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/emotional-data8482/automata/agents"
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/sqlite"
+	"github.com/taylortyler-1/automata/agents"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/sqlite"
 )
 
 type PublishInput struct {

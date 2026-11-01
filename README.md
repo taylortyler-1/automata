@@ -837,6 +837,26 @@ Examples that call a model need credentials; the others run offline.
   go run ./examples/deep_research "the impact of GLP-1 drugs on US healthcare costs"
   ```
 
+## Upgrading to v0.6.3
+
+v0.6.3 moves the module path from `github.com/emotional-data8482/automata` to
+`github.com/taylortyler-1/automata`, following the GitHub account rename. There
+are no API or behavior changes.
+
+Upgrade steps:
+
+1. Replace the old path prefix in every import and `go.mod` requirement, for
+   example `github.com/emotional-data8482/automata/core` becomes
+   `github.com/taylortyler-1/automata/core`.
+2. Require the new module: `go get github.com/taylortyler-1/automata@v0.6.3`.
+   Each nested module (`tools`, `extensions/*`, `host`) moves the same way at
+   its first release under the new path.
+3. Run `go mod tidy` to drop the old requirements.
+
+Versions through v0.6.2 remain available from the Go module proxy under the
+old path, but they receive no further releases. Do not mix both paths in one
+build: they are distinct modules, and their types are not interchangeable.
+
 ## Upgrading to v0.6
 
 v0.6 adds what a self-hosted platform needs on top of `Runtime`, and no

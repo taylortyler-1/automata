@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 func writeSkill(t *testing.T, dir, name, frontmatter, body string) string {

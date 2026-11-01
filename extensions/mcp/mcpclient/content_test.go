@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/core"
 )
 
 func TestContentBlock(t *testing.T) {

@@ -1,6 +1,6 @@
 {
   "repository": "taylortyler-1/automata",
-  "module": "github.com/emotional-data8482/automata",
+  "module": "github.com/taylortyler-1/automata",
   "modules": [
     {"path": ".", "kind": "published", "race": true, "smoke": "core"},
     {"path": "tools", "kind": "published", "race": false, "smoke": "."},

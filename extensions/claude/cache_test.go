@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // TestConversationCacheStampsLastMessage pins that WithConversationCache places

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emotional-data8482/automata/tracing"
+	"github.com/taylortyler-1/automata/tracing"
 )
 
 // Sentinel errors returned by a run. Callers can use errors.Is to distinguish

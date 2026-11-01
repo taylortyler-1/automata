@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/extensions/mcp/mcpclient"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/extensions/mcp/mcpclient"
 )
 
 // connect serves server over in-memory transports and returns a connected

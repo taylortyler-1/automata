@@ -15,7 +15,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 SHA = "a" * 40
 OLDER = "b" * 40
-BASE = "github.com/emotional-data8482/automata"
+BASE = "github.com/taylortyler-1/automata"
 
 # Every potentially publishing command is intercepted in an isolated PATH.
 FAKE_COMMAND = r'''#!/usr/bin/env python3
@@ -285,7 +285,13 @@ class ReleaseToolsTest(unittest.TestCase):
                 self.env[field] = original
         self.assert_no_publication()
 
+    def use_repository(self, repository):
+        self.inventory = dict(self.inventory, repository=repository)
+        (self.root / "scripts/modules.json").write_text(json.dumps(self.inventory))
+        self.env["GITHUB_REPOSITORY"] = repository
+
     def test_repository_identity_is_independent_of_module_path(self):
+        self.use_repository("renamed-owner/automata")
         self.assertNotEqual(self.inventory["repository"], BASE.removeprefix("github.com/"))
         self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
         api = next(e for e in self.commands("gh") if e["args"][:1] == ["api"])
@@ -295,6 +301,7 @@ class ReleaseToolsTest(unittest.TestCase):
         self.assertIn(f"go get {BASE}/tools@v0.5.3", create["notes"])
 
     def test_old_repository_identity_cannot_publish(self):
+        self.use_repository("renamed-owner/automata")
         self.env["GITHUB_REPOSITORY"] = BASE.removeprefix("github.com/")
         result = self.definition("publish_release", "tools", "v0.5.3", SHA)
         self.assertNotEqual(result.returncode, 0)

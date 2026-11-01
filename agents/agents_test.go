@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emotional-data8482/automata/agents"
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/agents"
+	"github.com/taylortyler-1/automata/core"
 )
 
 type ReviewRequest struct {

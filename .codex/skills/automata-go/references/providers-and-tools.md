@@ -5,8 +5,8 @@ Automata keeps provider SDKs, the SQLite store, the MCP SDK, and tool integratio
 ## Anthropic Claude
 
 ```bash
-go get github.com/emotional-data8482/automata@latest \
-  github.com/emotional-data8482/automata/extensions/claude@latest
+go get github.com/taylortyler-1/automata@latest \
+  github.com/taylortyler-1/automata/extensions/claude@latest
 ```
 
 ```go
@@ -33,8 +33,8 @@ Notes:
 ## OpenAI-Compatible Chat Completions
 
 ```bash
-go get github.com/emotional-data8482/automata@latest \
-  github.com/emotional-data8482/automata/extensions/openai@latest
+go get github.com/taylortyler-1/automata@latest \
+  github.com/taylortyler-1/automata/extensions/openai@latest
 ```
 
 ```go
@@ -62,8 +62,8 @@ Notes:
 ## OpenRouter
 
 ```bash
-go get github.com/emotional-data8482/automata@latest \
-  github.com/emotional-data8482/automata/extensions/openrouter@latest
+go get github.com/taylortyler-1/automata@latest \
+  github.com/taylortyler-1/automata/extensions/openrouter@latest
 ```
 
 ```go
@@ -120,8 +120,8 @@ The runtime streams from providers that implement `core.StreamProvider`, even fo
 ## SQLite Store
 
 ```bash
-go get github.com/emotional-data8482/automata@v0.6.0 \
-  github.com/emotional-data8482/automata/extensions/sqlite@v0.5.3
+go get github.com/taylortyler-1/automata@v0.6.0 \
+  github.com/taylortyler-1/automata/extensions/sqlite@v0.5.3
 ```
 
 ```go
@@ -136,7 +136,7 @@ Use SQLite v0.5.3 or later for the transaction cancellation/reopen fix. Before o
 ## HTTP API and Host
 
 ```bash
-go get github.com/emotional-data8482/automata/host@v0.6.0
+go get github.com/taylortyler-1/automata/host@v0.6.0
 ```
 
 Host v0.6.0 selects core v0.6.0, `extensions/httpserver` v0.6.0, and SQLite v0.5.3 without replacements. Use `host.Main(host.Options{Register: registerDefinitions})` for a standalone service, or `host.Run(ctx, options)` for an embedded lifecycle. It opens the store, registers definitions, recovers, runs retention, and drains HTTP and closes the Runtime on shutdown. Register every revision persisted runs may pin.
@@ -186,7 +186,7 @@ Do not retry non-idempotent operations this way; the runtime rejects a retried c
 ## First-Party Tools Module
 
 ```bash
-go get github.com/emotional-data8482/automata/tools@latest
+go get github.com/taylortyler-1/automata/tools@latest
 ```
 
 ### Sandboxed File Access
@@ -251,8 +251,8 @@ fetch := tools.HTTPFetch()
 ### Vendor-Neutral Web Search with Tavily
 
 ```bash
-go get github.com/emotional-data8482/automata/tools@latest \
-  github.com/emotional-data8482/automata/extensions/tavily@latest
+go get github.com/taylortyler-1/automata/tools@latest \
+  github.com/taylortyler-1/automata/extensions/tavily@latest
 ```
 
 ```go
@@ -274,7 +274,7 @@ Tavily defaults to a 30-second client and asks for raw results rather than a syn
 ## MCP Servers
 
 ```bash
-go get github.com/emotional-data8482/automata/extensions/mcp@latest
+go get github.com/taylortyler-1/automata/extensions/mcp@latest
 ```
 
 `extensions/mcp` wraps the official MCP Go SDK (`github.com/modelcontextprotocol/go-sdk/mcp`), which owns transports, framing, sessions, authentication, and capability negotiation. It requires core v0.5.3 or later (it uses tool progress).

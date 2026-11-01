@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/emotional-data8482/automata/retry"
+	"github.com/taylortyler-1/automata/retry"
 )
 
 // An invalid approval policy must be rejected whichever wrapper surrounds it;

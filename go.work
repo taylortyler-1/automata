@@ -19,3 +19,5 @@ use (
 	./host
 	./tools
 )
+
+replace github.com/taylortyler-1/automata/extensions/httpserver v0.6.0 => ./extensions/httpserver

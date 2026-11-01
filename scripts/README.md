@@ -32,7 +32,7 @@ The Ubuntu runner supplies Bash, jq, Python 3, Git, and the GitHub CLI.
 `scripts/modules.json` is the shared inventory for CI, release eligibility,
 race targets, and consumer smoke imports. Its `repository` field pins the
 canonical GitHub publication target (`taylortyler-1/automata`) independently of
-`module`, the Go import-path prefix (`github.com/emotional-data8482/automata`).
+`module`, the Go import-path prefix (`github.com/taylortyler-1/automata`).
 A GitHub account rename does not itself migrate Go module identity. Keep the
 inventory aligned with `go.work` when adding modules. Examples are build-only
 and cannot be released.

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // pipeWriter uses a real deadline-aware connection whose peer never reads.

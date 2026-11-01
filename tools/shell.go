@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 const shellMaxOutput = 64 << 10 // 64 KiB

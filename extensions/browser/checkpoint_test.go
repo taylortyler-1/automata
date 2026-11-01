@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
-	"github.com/emotional-data8482/automata/core/coretest"
+	"github.com/taylortyler-1/automata/core"
+	"github.com/taylortyler-1/automata/core/coretest"
 )
 
 func execCheckpoint(t *testing.T, s *Session, note string) core.ToolResult {

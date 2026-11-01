@@ -6,7 +6,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 type replayFailureProvider struct{ message core.Message }

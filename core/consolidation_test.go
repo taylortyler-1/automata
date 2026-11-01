@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emotional-data8482/automata/retry"
+	"github.com/taylortyler-1/automata/retry"
 )
 
 type invokeFunc func(context.Context, Request) (Response, error)

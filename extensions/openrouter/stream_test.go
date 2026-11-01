@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // writeSSE emits server-sent events followed by the [DONE] sentinel, matching

@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emotional-data8482/automata/core"
+	"github.com/taylortyler-1/automata/core"
 )
 
 // fakeProvider answers "done" after a tool result, calls the ask tool for
