@@ -2,12 +2,12 @@ github.com/anthropics/anthropic-sdk-go v1.21.0 h1:sn2iMiUODSMtJTN5nGMOn+ayEpNMuL
 github.com/anthropics/anthropic-sdk-go v1.21.0/go.mod h1:WTz31rIUHUHqai2UslPpw5CwXrQP3geYBioRV4WOLvE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/emotional-data8482/automata v0.5.2 h1:QV2jH9Tu9IQyM7bHmYvRpWPSU3U3nBmJFpEQ0E6RGKk=
-github.com/emotional-data8482/automata v0.5.2/go.mod h1:cdZWiuUvSP4zSH85Md2TE3ASj2SUy4yt29TOfSHE/K8=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+github.com/taylortyler-1/automata v0.6.3 h1:k7SFXV+NwewhvWolLJ7mb23Zc/Mq5YKFvQw2ca/qW6E=
+github.com/taylortyler-1/automata v0.6.3/go.mod h1:ESB7wfh5gqu8VhJ739T8L2PC0pUGhMEcQ8/CxIBWE24=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
