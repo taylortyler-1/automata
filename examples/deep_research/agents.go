@@ -8,8 +8,8 @@ import (
 
 	"github.com/taylortyler-1/automata/agents"
 	"github.com/taylortyler-1/automata/core"
-	"github.com/taylortyler-1/automata/extensions/claude"
 	"github.com/taylortyler-1/automata/extensions/tavily"
+	"github.com/taylortyler-1/automata/providers/claude"
 	"github.com/taylortyler-1/automata/tools"
 )
 

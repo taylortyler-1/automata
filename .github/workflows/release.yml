@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       module:
-        description: 'Module path from scripts/modules.json (root: .)'
+        description: 'Module path from scripts/modules.json (the library is the root: .)'
         required: true
+        default: '.'
         type: string
       version:
         description: Exact stable version, e.g. v0.5.3

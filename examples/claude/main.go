@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/taylortyler-1/automata/core"
-	"github.com/taylortyler-1/automata/extensions/claude"
+	"github.com/taylortyler-1/automata/providers/claude"
 )
 
 // currentTimeParams is the typed input for the current_time tool. The exported

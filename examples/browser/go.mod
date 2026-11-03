@@ -2,11 +2,7 @@ module github.com/taylortyler-1/automata/examples/browser
 
 go 1.26.2
 
-require (
-	github.com/taylortyler-1/automata v0.6.0
-	github.com/taylortyler-1/automata/extensions/browser v0.0.0
-	github.com/taylortyler-1/automata/extensions/openrouter v0.5.2
-)
+require github.com/taylortyler-1/automata v0.6.0
 
 require (
 	github.com/OpenRouterTeam/go-sdk v0.8.21 // indirect
@@ -19,8 +15,4 @@ require (
 	github.com/ysmood/leakless v0.9.0 // indirect
 )
 
-replace (
-	github.com/taylortyler-1/automata => ../..
-	github.com/taylortyler-1/automata/extensions/browser => ../../extensions/browser
-	github.com/taylortyler-1/automata/extensions/openrouter => ../../extensions/openrouter
-)
+replace github.com/taylortyler-1/automata => ../..

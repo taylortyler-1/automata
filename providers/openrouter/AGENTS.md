@@ -22,5 +22,5 @@
   `core`.
 
 Validate with conversion, request-shape, error, streaming, and runtime tests
-in this module. Unit tests use `WithServerURL` against a local test server —
+in this package. Unit tests use `WithServerURL` against a local test server —
 never a live API key or a live model call.

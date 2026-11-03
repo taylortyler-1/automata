@@ -12,11 +12,11 @@ authoritative, and this file must not grow into a stale duplicate of them.
 | Definitions and typed helpers | `core.New`/`AgentConfig`, `Func`/`FuncResult`, `WithToolEffectPolicy`, `WithDurableWait`, `ChildTool`/`NewChildTool`, `OutputSchema`, `Decode`, `Agent.Describe`, `CurrentTime` | `core/agent.go`, `core/tools.go`, `core/children.go`, `core/typed.go`, `README.md` |
 | Live streaming | `Runtime.RunStream`, `RunHandle.Observe`, child-event forwarding, `core.ReportToolProgress`/`WithToolProgress`, `core.StreamAccumulator` | `core/stream.go`, `core/progress.go`, `core/runtime_live.go` (`publish`, `attachAncestors`), `core/accumulator.go`, `docs/durable-runtime.md#observation` |
 
-HTTP and host are independent published modules: `extensions/httpserver`
+HTTP and host are packages in the root module: `extensions/httpserver`
 serves the Runtime's committed state over HTTP/SSE; `host.Main`/`host.Run`
 own startup, recovery, retention, and shutdown. Inspect their READMEs and
 lifecycle tests together when changing server behavior. `core/coretest` is
-the stdlib-only provider/Runtime test kit, not a separate module.
+the stdlib-only provider/Runtime test kit.
 
 `core/AGENTS.md` ("Layout") says which `core/runtime_*.go` file owns each
 runtime role.
@@ -60,9 +60,9 @@ HTTP and host `v0.6.0` are published, with host pinned to that SQLite patch.
 | Provider options | `core/provider.go`, request builders of the affected adapters, docs/examples |
 | Durable runtime or storage | `core/runtime*.go` (recovery decisions in `runtime_recovery_table.go`, applied by `runtime_recover.go`; terminal and attention transitions in `runtime_disposition.go`), `core/waits.go`, `docs/durable-runtime.md`, `core/storetest`, `extensions/sqlite`, `internal/durabletest` |
 | First-party tool API | `tools/`, affected backend extension, security bounds, consumer examples |
-| Module/version change | every published `go.mod`, `go.work`, `scripts/modules.json`, `.github/workflows`, examples, README release contract, `scripts/README.md` |
+| Module/version change | root `go.mod`, `go.work`, `scripts/modules.json`, `.github/workflows`, examples, README release contract, `scripts/README.md` |
 
-Discover the provider set instead of assuming it: enumerate `extensions/*`
+Discover the provider set instead of assuming it: enumerate `providers/*`
 adapters and read each adapter's `AGENTS.md` when a shared contract changes.
 Preserve provider-native content through `RawBlock`; keep streaming and
 non-streaming response semantics aligned per adapter.
@@ -100,27 +100,21 @@ CI-only publication workflow. Do not infer membership from memory.
 ```sh
 go test ./<affected package>       # targeted behavior
 go test -race ./core               # runtime, streams, tool progress, tool batches, children, accumulators, hooks
-go test ./...                      # from each affected nested module directory
-GOWORK=off go test ./...           # published modules with dependencies or interfaces changed
+go test ./...                      # from the root
+GOWORK=off go test ./...           # from the root, when dependencies change
 go build ./...                     # affected example modules, without credentials
 ```
 
 `scripts/check-modules.sh` runs the same checks as CI without publishing:
 `inventory` (`scripts/modules.json` matches `go.work`), `format`, `workspace`,
-`race <module>` for the inventory's race targets (root, `extensions/sqlite`,
-`extensions/mcp`, `extensions/httpserver`, `host`), and `release <module>` for an isolated release-readiness
-check.
+`race .` for the root module, and `release .` for an isolated
+release-readiness check.
 
 ### Claiming results
 
 - A workspace (`go.work`) pass and a `GOWORK=off` pass are separate claims;
-  report them separately. `GOWORK=off` still resolves against the versions
-  currently pinned in each module's `go.mod` — it does not by itself prove
-  compatibility with every previously tagged release. Release readiness requires
-  finalized requirements on published dependency versions and no replacements;
-  update those files in ordinary PRs before tagging. A module built on
-  unreleased core passes the workspace and fails `GOWORK=off` until core is
-  released and its requirement is bumped.
+  report them separately. Release readiness requires a tidy root `go.mod`
+  with no replacements; update it in ordinary PRs before tagging.
 - Run race tests for changes to the runtime, streams, tool progress, tool
   batches, children, accumulators, hooks, or other concurrent state.
 - Live provider calls are opt-in integration checks; never require them for

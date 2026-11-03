@@ -1,6 +1,6 @@
 # CI and module releases
 
-Automata publishes Go modules, not application binaries. Versions come from
+Automata publishes one Go module, not application binaries. Versions come from
 immutable Git tags. A release never bumps dependencies, edits source, commits
 files, or pushes a branch.
 
@@ -33,59 +33,50 @@ The Ubuntu runner supplies Bash, jq, Python 3, Git, and the GitHub CLI.
 race targets, and consumer smoke imports. Its `repository` field pins the
 canonical GitHub publication target (`taylortyler-1/automata`) independently of
 `module`, the Go import-path prefix (`github.com/taylortyler-1/automata`).
-A GitHub account rename does not itself migrate Go module identity. Keep the
-inventory aligned with `go.work` when adding modules. Examples are build-only
-and cannot be released.
+A GitHub account rename does not itself migrate Go module identity.
 
-CI tests every published module against the current workspace, builds examples
-without credentials, and runs the inventory's race targets (root, SQLite, and
-MCP). It checks module
-identity, the dependency-free root, Go formatting, and release-tool tests.
-Example executables and consumer projects are built outside the checkout.
+The library is a single module: the root. `tools`, `host`, `providers/*`, and
+`extensions/*` are packages in it. The only other modules are `examples/*`,
+which are build-only, listed in the inventory and `go.work`, and never
+released. The inventory check fails if a nested `go.mod` appears anywhere
+outside `examples/`.
 
-Workspace success proves integration of the current source; it does **not**
-prove that an adapter builds against its published dependency requirements.
-An adapter using unreleased core may pass workspace CI but is not release-ready.
+CI tests the root module against the current workspace, builds examples
+without credentials, and runs the root's race tests. It checks module
+identity, Go formatting, and release-tool tests. Example executables and
+consumer projects are built outside the checkout.
 
 ## Dependency policy
 
-Internal requirements are minimum compatible versions, not coordinated release
-numbers. Leave them unchanged unless a newer API or runtime fix is needed.
-For example, `extensions/openai/v0.5.3` may still require core `v0.5.2`.
-Installing newer core explicitly raises the selected version through Go's
-minimal version selection.
+Third-party requirements live in the root `go.mod`. Only `providers/*` and
+`extensions/*` may import them; `core`, `agents`, `tools`, `retry`, and
+`tracing` stay stdlib-only. A consumer downloads and compiles a dependency's
+source only when a package it imports needs it.
 
-If an adapter needs new core functionality:
-
-1. Release core first.
-2. In a normal PR, update the adapter's requirement to that published version,
-   remove any development replacements, run `GOWORK=off go mod tidy`, and commit
-   its finalized `go.mod` and `go.sum`.
-3. Test and merge the PR, then release the adapter.
-
-For a change spanning core, tools, and Tavily, publish in that dependency order.
-Other modules and examples do not receive automatic version bumps. The release
-check rejects **all** replacements and dependency exclusions: consumers ignore
-those directives in a dependency's `go.mod`.
+Change dependencies in a normal PR and commit the finalized `go.mod` and
+`go.sum` (`GOWORK=off go mod tidy`). The release check rejects **all**
+replacements and dependency exclusions: consumers ignore those directives in
+a dependency's `go.mod`.
 
 ## Requesting a release
 
 In **Actions → Release module → Run workflow**, choose branch `main` and supply:
 
-- **module**: an inventory path, such as `.`, `tools`, or `extensions/openai`.
+- **module**: `.` (the only published module).
 - **version**: an exact stable version, such as `v0.5.3`.
 - **commit**: optionally a full lowercase SHA on `main`. Empty means the commit
   captured when dispatching, not whichever commit is newest after approval.
 
-The selected commit must contain the pipeline tooling. Release one module per
-workflow. Prereleases and v2+ path migrations are deliberately outside this
+The selected commit must contain the pipeline tooling. Prereleases and v2+ path migrations are deliberately outside this
 initial workflow.
 
 | Module | Tag |
 | --- | --- |
-| Root (`core`, `retry`, `tracing`) | `v0.5.3` |
-| Tools | `tools/v0.5.3` |
-| Provider/store/backend extension | `extensions/<name>/v0.5.3` |
+| Root (every library package) | `v0.7.0` |
+
+Tags with a path prefix (`tools/v0.6.2`, `extensions/<name>/v0.5.3`, ...)
+belong to the nested modules that existed through v0.6.x. They stay published
+and immutable, and the root's version selection ignores them.
 
 The read-only job checks the exact source SHA, version progression, existing
 tags, formatting, tooling tests, all workspace integration/examples, and the
@@ -95,8 +86,7 @@ configured. Dependency and checksum files must already be final.
 Review the candidate SHA/tag in the workflow summary and approve the **release**
 environment. The publication job pushes only the selected tag, without force,
 and creates module-filtered GitHub release notes. New root releases are marked
-as the repository-wide **Latest**; `tools` and extension releases are not.
-Completing an older partial root release does not displace a newer root version.
+as the repository-wide **Latest**. Completing an older partial root release does not displace a newer root version.
 
 **The tag publishes the Go module.** GitHub Release creation is accompanying
 metadata, not a way to keep a tagged version private. The consumer job therefore
@@ -137,9 +127,7 @@ scripts/check-modules.sh inventory
 scripts/check-modules.sh format
 scripts/check-modules.sh workspace
 scripts/check-modules.sh race .
-scripts/check-modules.sh race extensions/sqlite
-scripts/check-modules.sh race extensions/mcp
-scripts/check-modules.sh release tools # isolated release-readiness check
+scripts/check-modules.sh release .     # isolated release-readiness check
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -v
 ```
 

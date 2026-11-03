@@ -1,7 +1,7 @@
 # Browser extension guidance
 
-This module drives one Chromium page through go-rod and exposes it as
-`core.Tool` values. Keep rod and CDP types inside this module.
+This package drives one Chromium page through go-rod and exposes it as
+`core.Tool` values. Keep rod and CDP types inside this package.
 
 - The model-facing contract is the snapshot text format and the ref rules.
   Refs name backend DOM node ids, never restart numbering within a session,

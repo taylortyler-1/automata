@@ -4,7 +4,7 @@ set -euo pipefail
 source "$(dirname "$0")/release-lib.sh"
 
 inventory_check() {
-  local path expected actual root_info
+  local path expected actual nested
   release_repository >/dev/null
   jq -e '
     (.module | type == "string") and
@@ -12,7 +12,7 @@ inventory_check() {
     ([.modules[].path] | length == (unique | length)) and
     ([.modules[] | select(.path == "." and .kind == "published")] | length == 1) and
     all(.modules[];
-      (.path | test("^(\\.|tools|host|extensions/[a-z0-9_-]+|examples/[a-z0-9_-]+)$")) and
+      (.path | test("^(\\.|examples/[a-z0-9_-]+)$")) and
       (.kind == "published" or .kind == "example") and
       (.race | type == "boolean") and
       (.smoke | test("^(\\.|[a-z0-9_-]+)$")) and
@@ -25,9 +25,10 @@ inventory_check() {
   expected="$(jq -c '[.modules[].path] | sort' "$INVENTORY")"
   actual="$(cd "$ROOT" && go work edit -json | jq -c '[.Use[].DiskPath | sub("^\\./"; "")] | sort')"
   [ "$actual" = "$expected" ] || { fail "go.work and module inventory differ"; return 1; }
-  root_info="$(cd "$ROOT" && GOWORK=off go mod edit -json)"
-  [ "$(jq '(.Require // []) | length' <<<"$root_info")" -eq 0 ] ||
-    { fail "the root module must remain dependency-free"; return 1; }
+  # The library is one module; only examples (build-only) carry their own go.mod.
+  nested="$(cd "$ROOT" && find . -name go.mod -not -path ./go.mod -not -path './examples/*' -not -path './.git/*' -print)"
+  [ -z "$nested" ] ||
+    { fail "library packages belong to the root module; remove nested go.mod: $nested"; return 1; }
 }
 
 metadata_state() {

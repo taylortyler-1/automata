@@ -1,8 +1,9 @@
 # Automata repository guidance
 
-Automata is a multi-module Go library for provider-neutral agent execution. Keep
-the root module dependency-light and preserve provider-specific behavior in
-`extensions/*`.
+Automata is a single-module Go library for provider-neutral agent execution
+(only `examples/*` have their own `go.mod`). Keep `core`, `agents`, `tools`,
+`retry`, and `tracing` stdlib-only; vendor SDKs and drivers belong in
+`providers/*` and `extensions/*` packages.
 
 ## Start here
 
@@ -56,10 +57,10 @@ the root module dependency-light and preserve provider-specific behavior in
 
 - Format changed Go files with `gofmt`.
 - Run the closest package tests while iterating.
-- Before finishing a cross-module change, run `go test ./...` from the root and
-  from every affected nested module.
-- For dependency-boundary or release work, also test affected published modules
-  with `GOWORK=off go test ./...`.
+- Before finishing a cross-package change, run `go test ./...` from the root and
+  `go build ./...` in any affected example.
+- For dependency or release work, also run `GOWORK=off go test ./...` from the
+  root.
 - Run race tests for changes to the runtime, streams, tool batches, children, accumulators,
   hooks, or other concurrent state.
 

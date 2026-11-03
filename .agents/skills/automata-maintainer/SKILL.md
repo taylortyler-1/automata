@@ -80,24 +80,19 @@ stored state. Update docs and runnable examples when exported behavior changes.
 First apply the affected package's own `AGENTS.md` validation rules; they
 override the generic ladder below. Then:
 
-1. Discover affected modules from `go.mod` files and `go.work`; classify each
-   with the `scripts/modules.json` inventory as published (root, `tools`,
-   `host`, `extensions/*` — tagged independently; release validation rejects
-   replacements and exclusions), example (`examples/*` — `replace`
-   directives, never tagged), or private fixture (`internal/durabletest`,
-   local-only and absent from `go.work`).
+1. The library is one published module (the root: `core`, `agents`, `tools`,
+   `host`, `providers/*`, `extensions/*`, ...; release validation rejects
+   replacements and exclusions). The only other modules are examples
+   (`examples/*` — `replace` directives, never tagged), listed in
+   `scripts/modules.json` and `go.work`.
 2. Run the narrowest useful checks first: targeted package tests, then race
    tests for concurrency-sensitive changes (runtime, streams, tool progress,
-   tool batches, children, accumulators, hooks). The inventory's race targets
-   are the root, `extensions/sqlite`, `extensions/mcp`,
-   `extensions/httpserver`, and `host`;
-   `scripts/check-modules.sh race <module>` runs one as CI does.
-3. For cross-module changes, test the root and every affected nested module.
-   For published modules also run `GOWORK=off go test ./...`. Report workspace
-   and workspace-off results separately — they are different claims, and
-   neither alone proves compatibility with previously tagged published
-   versions. A module that uses unreleased core passes the workspace but not
-   `GOWORK=off` until core is released and its requirement is bumped.
+   tool batches, children, accumulators, hooks). The inventory's race target
+   is the root module (`./...`, which covers sqlite, MCP, HTTP, and host);
+   `scripts/check-modules.sh race .` runs it as CI does.
+3. For cross-package changes, run `go test ./...` from the root and build
+   affected examples. For dependency changes also run `GOWORK=off go test
+   ./...` from the root and report it separately from the workspace result.
 4. Build affected examples without credentials. Live provider calls are opt-in
    integration checks and are never required for ordinary validation. For
    platform-specific fixes, cross-compile tests for affected targets: a runtime
@@ -108,14 +103,12 @@ override the generic ladder below. Then:
    checks, and residual risk. Never present proposed validation as executed.
 
 Publication happens only through the approved **Release module** GitHub
-Actions workflow, one module per dispatch (see `scripts/README.md`).
+Actions workflow for the root module (see `scripts/README.md`).
 `scripts/release.sh` is its CI-only entry point, never a local check. Without
 an explicit release request, do not run it, dispatch the workflow, create
-tags, or push. Internal dependency versions are minimum compatible versions,
-not coordinated release numbers. Publish dependencies first, finalize each
-consumer's requirements and checksums in an ordinary PR with
-`GOWORK=off go mod tidy`, and pass `scripts/check-modules.sh release <module>` before dispatch.
-Wait for public-proxy consumer verification before releasing the next module.
+tags, or push. Finalize requirements and checksums in an ordinary PR with
+`GOWORK=off go mod tidy`, and pass `scripts/check-modules.sh release .` before
+dispatch. Wait for public-proxy consumer verification before announcing it.
 A local merge or passing release-readiness check is not publication evidence;
 keep skill/docs claims about pending fixes separate from published guarantees.
 

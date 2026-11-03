@@ -1,6 +1,6 @@
 # MCP extension guidance
 
-This module wraps the official MCP Go SDK
+This package wraps the official MCP Go SDK
 (`github.com/modelcontextprotocol/go-sdk`). `mcpclient` exposes a server's
 tools as `core.Tool` values; `mcpserver` registers `core.Tool` values on an SDK
 server.
@@ -8,7 +8,7 @@ server.
 - Let the SDK own transports, JSON-RPC framing, sessions, OAuth, and
   capability negotiation. Do not reimplement protocol behavior here, and do
   not wrap SDK transports that users can construct directly.
-- Keep SDK types out of `core`. They may appear in this module's API only
+- Keep SDK types out of `core`. They may appear in this package's API only
   where the SDK is the configuration surface (transports, server,
   implementation, client options).
 - Client error mapping is a contract: `isError` results and server JSON-RPC
@@ -36,4 +36,4 @@ server.
 Tests use `mcp.NewInMemoryTransports` or a loopback `httptest` server for the
 streamable transport; never start subprocesses or contact live services.
 Validate with `go test -race ./...` and `GOWORK=off go test ./...` from this
-module.
+package.

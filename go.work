@@ -8,14 +8,4 @@ use (
 	./examples/durable_host
 	./examples/durable_typed
 	./examples/openai
-	./extensions/browser
-	./extensions/claude
-	./extensions/httpserver
-	./extensions/mcp
-	./extensions/openai
-	./extensions/openrouter
-	./extensions/sqlite
-	./extensions/tavily
-	./host
-	./tools
 )

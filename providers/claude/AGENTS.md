@@ -11,4 +11,4 @@
 - Native structured output capability is provider-level; unsupported models
   must surface invocation errors clearly.
 
-Validate with conversion, caching, streaming, and provider tests in this module.
+Validate with conversion, caching, streaming, and provider tests in this package.

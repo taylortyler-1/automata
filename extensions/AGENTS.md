@@ -1,12 +1,15 @@
-# Provider and backend extension guidance
+# Backend extension guidance
 
-Each child directory is an independently versioned Go module.
+Each child directory is a package tree in the root module (store, MCP, HTTP,
+browser, and search backends). Provider adapters live in `providers/` and
+follow the same rules.
 
 - Translate vendor requests, responses, streaming deltas, usage, errors, tool
   schemas, and stop reasons at this boundary.
 - Preserve every provider-neutral block the vendor supports. Use `RawBlock` for
   provider-specific content that must round-trip.
-- Never add vendor dependencies to the root module.
+- Never import vendor dependencies from `core`, `agents`, `tools`, `retry`, or
+  `tracing`; keep them inside the extension package that needs them.
 - Wrap transient vendor failures with a type implementing `retry.Retryable`;
   preserve context cancellation unchanged.
 - Add conversion tests for each supported block and malformed-input path.
@@ -15,4 +18,4 @@ Each child directory is an independently versioned Go module.
   code edit.
 
 Use `module_integrator` for cross-provider impact analysis. Test an affected
-module both through `go.work` and with `GOWORK=off go test ./...`.
+package with `go test ./extensions/<name>/...` from the repository root.

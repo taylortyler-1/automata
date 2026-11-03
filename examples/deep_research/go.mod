@@ -8,9 +8,6 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/taylortyler-1/automata v0.5.2
-	github.com/taylortyler-1/automata/extensions/claude v0.5.2
-	github.com/taylortyler-1/automata/extensions/tavily v0.5.2
-	github.com/taylortyler-1/automata/tools v0.5.2
 )
 
 require (
@@ -28,18 +25,14 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 )
 
-replace (
-	github.com/taylortyler-1/automata => ../..
-	github.com/taylortyler-1/automata/extensions/claude => ../../extensions/claude
-	github.com/taylortyler-1/automata/extensions/tavily => ../../extensions/tavily
-	github.com/taylortyler-1/automata/tools => ../../tools
-)
+replace github.com/taylortyler-1/automata => ../..

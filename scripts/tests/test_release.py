@@ -200,7 +200,7 @@ class ReleaseToolsTest(unittest.TestCase):
         race_paths = [m["path"] for m in matrix if m["race"]]
         self.assertEqual(race_paths, [m["path"] for m in self.inventory["modules"] if m["race"]])
         self.assertIn(".", race_paths)
-        self.assertIn("extensions/sqlite", race_paths)
+        self.assertEqual(race_paths, ["."])
 
     def test_inventory_must_match_workspace(self):
         self.state["work_paths"].pop()
@@ -209,47 +209,45 @@ class ReleaseToolsTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("inventory differ", result.stderr)
 
-    def test_module_tag_names(self):
-        for module, tag in ((".", "v0.5.3"), ("tools", "tools/v0.5.3"),
-                            ("extensions/openai", "extensions/openai/v0.5.3")):
-            with self.subTest(module=module):
-                result = self.definition("release_plan", module, "v0.5.3", SHA)
-                self.assert_success(result)
-                plan = json.loads(result.stdout)
-                self.assertEqual(plan["tag"], tag)
-                self.assertEqual(plan["commit"], SHA)
+    def test_root_tag_name(self):
+        result = self.definition("release_plan", ".", "v0.5.3", SHA)
+        self.assert_success(result)
+        plan = json.loads(result.stdout)
+        self.assertEqual(plan["tag"], "v0.5.3")
+        self.assertEqual(plan["commit"], SHA)
+        self.assertEqual(plan["previous_tag"], "v0.5.2")
         self.assert_no_publication()
 
     def test_only_exact_supported_stable_versions(self):
         for version in ("patch", "v0.05.3", "v0.5.3-rc.1", "v2.0.0", "v0.5.3; echo BAD"):
             with self.subTest(version=version):
-                result = self.definition("release_plan", "tools", version, SHA)
+                result = self.definition("release_plan", ".", version, SHA)
                 self.assertNotEqual(result.returncode, 0)
         self.assert_no_publication()
 
     def test_unknown_modules_and_examples_cannot_release(self):
-        for module in ("../tools", "missing", "examples/openai"):
+        for module in ("../tools", "missing", "tools", "extensions/openai", "examples/openai"):
             self.assertNotEqual(self.definition("release_plan", module, "v0.5.3", SHA).returncode, 0)
         self.assert_no_publication()
 
-    def test_versions_are_module_scoped_not_root_scoped(self):
-        self.state["tags"]["v1.4.0"] = OLDER
+    def test_legacy_nested_module_tags_do_not_affect_root_versions(self):
         self.state["tags"]["extensions/claude/v1.8.0"] = OLDER
+        self.state["tags"]["tools/v0.9.0"] = OLDER
         self.save()
-        self.assert_success(self.definition("release_plan", "tools", "v0.5.3", SHA))
-        self.assertNotEqual(self.definition("release_plan", "tools", "v0.5.1", SHA).returncode, 0)
+        self.assert_success(self.definition("release_plan", ".", "v0.5.3", SHA))
+        self.assertNotEqual(self.definition("release_plan", ".", "v0.5.1", SHA).returncode, 0)
 
     def test_matching_existing_tag_is_idempotent_even_after_a_later_release(self):
-        self.state["tags"].update({"tools/v0.5.3": SHA, "tools/v0.5.4": OLDER})
+        self.state["tags"].update({"v0.5.3": SHA, "v0.5.4": OLDER})
         self.save()
-        result = self.definition("release_plan", "tools", "v0.5.3", SHA)
+        result = self.definition("release_plan", ".", "v0.5.3", SHA)
         self.assert_success(result)
-        self.assertEqual(json.loads(result.stdout)["previous_tag"], "tools/v0.5.2")
+        self.assertEqual(json.loads(result.stdout)["previous_tag"], "v0.5.2")
 
     def test_conflicting_tag_is_rejected(self):
-        self.state["tags"]["tools/v0.5.3"] = OLDER
+        self.state["tags"]["v0.5.3"] = OLDER
         self.save()
-        result = self.definition("release_plan", "tools", "v0.5.3", SHA)
+        result = self.definition("release_plan", ".", "v0.5.3", SHA)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("another commit", result.stderr)
         self.assert_no_publication()
@@ -260,20 +258,20 @@ class ReleaseToolsTest(unittest.TestCase):
                 original = dict(self.state)
                 self.state[field] = value
                 self.save()
-                self.assertNotEqual(self.definition("release_plan", "tools", "v0.5.3", SHA).returncode, 0)
+                self.assertNotEqual(self.definition("release_plan", ".", "v0.5.3", SHA).returncode, 0)
                 self.state = original
         self.assert_no_publication()
 
     def test_status_lookup_errors_fail_closed(self):
         self.state["status_error"] = 128
         self.save()
-        self.assertNotEqual(self.definition("release_plan", "tools", "v0.5.3", SHA).returncode, 0)
+        self.assertNotEqual(self.definition("release_plan", ".", "v0.5.3", SHA).returncode, 0)
         self.assert_no_publication()
 
     def test_module_path_must_match_inventory(self):
-        self.state["mod_info"] = {"tools": {"Module": {"Path": "example.com/other"}}}
+        self.state["mod_info"] = {".": {"Module": {"Path": "example.com/other"}}}
         self.save()
-        self.assertNotEqual(self.definition("release_plan", "tools", "v0.5.3", SHA).returncode, 0)
+        self.assertNotEqual(self.definition("release_plan", ".", "v0.5.3", SHA).returncode, 0)
 
     def test_publication_requires_ci_default_branch_canonical_repo_and_approval(self):
         for field, value in (("GITHUB_ACTIONS", "false"), ("AUTOMATA_RELEASE_APPROVED", "false"),
@@ -281,7 +279,7 @@ class ReleaseToolsTest(unittest.TestCase):
             with self.subTest(field=field):
                 original = self.env[field]
                 self.env[field] = value
-                self.assertNotEqual(self.definition("publish_release", "tools", "v0.5.3", SHA).returncode, 0)
+                self.assertNotEqual(self.definition("publish_release", ".", "v0.5.3", SHA).returncode, 0)
                 self.env[field] = original
         self.assert_no_publication()
 
@@ -293,17 +291,17 @@ class ReleaseToolsTest(unittest.TestCase):
     def test_repository_identity_is_independent_of_module_path(self):
         self.use_repository("renamed-owner/automata")
         self.assertNotEqual(self.inventory["repository"], BASE.removeprefix("github.com/"))
-        self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
+        self.assert_success(self.definition("publish_release", ".", "v0.5.3", SHA))
         api = next(e for e in self.commands("gh") if e["args"][:1] == ["api"])
         self.assertEqual(api["args"][1], f"repos/{self.inventory['repository']}/environments/release")
         create = next(e for e in self.commands("gh") if e["args"][:2] == ["release", "create"])
         self.assertEqual(create["args"][create["args"].index("--repo") + 1], self.inventory["repository"])
-        self.assertIn(f"go get {BASE}/tools@v0.5.3", create["notes"])
+        self.assertIn(f"go get {BASE}@v0.5.3", create["notes"])
 
     def test_old_repository_identity_cannot_publish(self):
         self.use_repository("renamed-owner/automata")
         self.env["GITHUB_REPOSITORY"] = BASE.removeprefix("github.com/")
-        result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+        result = self.definition("publish_release", ".", "v0.5.3", SHA)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("not a fork", result.stderr)
         self.assert_no_publication()
@@ -315,7 +313,7 @@ class ReleaseToolsTest(unittest.TestCase):
                 inventory["repository"] = repository
                 (self.root / "scripts/modules.json").write_text(json.dumps(inventory))
                 self.assertNotEqual(self.check("inventory").returncode, 0)
-                result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+                result = self.definition("publish_release", ".", "v0.5.3", SHA)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("canonical owner/repository", result.stderr)
         self.assert_no_publication()
@@ -323,23 +321,23 @@ class ReleaseToolsTest(unittest.TestCase):
     def test_missing_required_reviewer_fails_closed(self):
         self.state["protected"] = False
         self.save()
-        result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+        result = self.definition("publish_release", ".", "v0.5.3", SHA)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("required reviewer", result.stderr)
         self.assert_no_publication()
 
     def test_publication_pushes_only_one_tag_and_creates_verified_release(self):
         before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
-        result = self.definition("publish_release", "tools", "v0.5.3", SHA)
+        result = self.definition("publish_release", ".", "v0.5.3", SHA)
         self.assert_success(result)
         push = [e for e in self.commands("git") if "push" in e["args"]]
         self.assertEqual(len(push), 1)
-        self.assertEqual(push[0]["args"][-3:], ["push", "origin", f"{SHA}:refs/tags/tools/v0.5.3"])
+        self.assertEqual(push[0]["args"][-3:], ["push", "origin", f"{SHA}:refs/tags/v0.5.3"])
         create = [e for e in self.commands("gh") if e["args"][:2] == ["release", "create"]]
         self.assertEqual(len(create), 1)
         self.assertIn("--verify-tag", create[0]["args"])
-        self.assertIn("--latest=false", create[0]["args"])
-        self.assertIn(f"go get {BASE}/tools@v0.5.3", create[0]["notes"])
+        self.assertIn("--latest=true", create[0]["args"])
+        self.assertIn(f"go get {BASE}@v0.5.3", create[0]["notes"])
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()})
 
     def test_latest_label_is_reserved_for_root_releases(self):
@@ -358,12 +356,12 @@ class ReleaseToolsTest(unittest.TestCase):
     def test_partial_publication_can_be_completed_without_repushing(self):
         self.state["create_error"] = True
         self.save()
-        self.assertNotEqual(self.definition("publish_release", "tools", "v0.5.3", SHA).returncode, 0)
+        self.assertNotEqual(self.definition("publish_release", ".", "v0.5.3", SHA).returncode, 0)
         self.state = json.loads(self.state_path.read_text())
         self.state["create_error"] = False
         self.save()
-        self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
-        self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
+        self.assert_success(self.definition("publish_release", ".", "v0.5.3", SHA))
+        self.assert_success(self.definition("publish_release", ".", "v0.5.3", SHA))
         self.assertEqual(len([e for e in self.commands("git") if "push" in e["args"]]), 1)
         self.assertEqual(len([e for e in self.commands("gh") if e["args"][:2] == ["release", "create"]]), 2)
 
@@ -373,33 +371,31 @@ class ReleaseToolsTest(unittest.TestCase):
                 original = dict(self.state)
                 self.state[field] = value
                 self.save()
-                self.assertNotEqual(self.definition("publish_release", "tools", "v0.5.3", SHA).returncode, 0)
+                self.assertNotEqual(self.definition("publish_release", ".", "v0.5.3", SHA).returncode, 0)
                 self.state = original
         self.assert_no_publication()
 
     def test_matching_annotated_tag_is_not_recreated(self):
         self.state.update(remote_sha=SHA, annotated=True)
         self.save()
-        self.assert_success(self.definition("publish_release", "tools", "v0.5.3", SHA))
+        self.assert_success(self.definition("publish_release", ".", "v0.5.3", SHA))
         self.assertFalse([e for e in self.commands("git") if "push" in e["args"]])
 
-    def test_root_notes_exclude_nested_module_commits(self):
+    def test_root_notes_exclude_example_commits(self):
         self.assert_success(self.definition("publish_release", ".", "v0.5.3", SHA))
         log = next(e for e in self.commands("git") if "log" in e["args"])
-        self.assertIn(":(exclude)tools", log["args"])
-        self.assertIn(":(exclude)extensions/openai", log["args"])
         self.assertIn(":(exclude)examples/openai", log["args"])
 
     def test_release_check_rejects_replacements_exclusions_and_untidy_files(self):
         for field in ("Replace", "Exclude"):
             with self.subTest(field=field):
-                self.state["mod_info"] = {"tools": {field: [{"Old": {"Path": BASE}}]}}
+                self.state["mod_info"] = {".": {field: [{"Old": {"Path": BASE}}]}}
                 self.save()
-                self.assertNotEqual(self.check("release", "tools").returncode, 0)
+                self.assertNotEqual(self.check("release", ".").returncode, 0)
         self.state["mod_info"] = {}
         self.state["untidy"] = True
         self.save()
-        self.assertNotEqual(self.check("release", "tools").returncode, 0)
+        self.assertNotEqual(self.check("release", ".").returncode, 0)
         self.assertFalse([e for e in self.commands("go") if e["args"][:1] == ["test"]])
 
     def test_isolated_checks_and_root_race_tests(self):
@@ -418,22 +414,24 @@ class ReleaseToolsTest(unittest.TestCase):
 
     def test_workspace_allows_existing_edits_but_detects_metadata_mutation(self):
         (self.root / "go.work").write_text("preexisting development edits\n")
-        self.assert_success(self.check("workspace", "tools"))
+        self.assert_success(self.check("workspace", "."))
         self.state["change_metadata"] = True
         self.save()
-        result = self.check("workspace", "tools")
+        result = self.check("workspace", ".")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("metadata changed", result.stderr)
 
-    def test_consumer_imports_inventory_subpackage(self):
-        self.assert_success(self.check("consumer", "extensions/mcp", "v0.5.3"))
-        get = next(e for e in self.commands("go") if e["args"][:1] == ["get"])
-        self.assertEqual(get["args"], ["get", f"{BASE}/extensions/mcp/mcpclient@v0.5.3"])
-        selected = next(e for e in self.commands("go") if e["args"][:3] == ["list", "-m", "-json"])
-        self.assertEqual(selected["args"][3], f"{BASE}/extensions/mcp")
-        build = next(e for e in self.commands("go") if e["args"][:1] == ["build"])
-        self.assertIn(f'import _ "{BASE}/extensions/mcp/mcpclient"', build["source"])
-        self.assert_no_publication()
+    def test_inventory_rejects_nested_library_modules(self):
+        for path in ("tools", "providers/claude", "extensions/sqlite"):
+            with self.subTest(path=path):
+                nested = self.root / path
+                nested.mkdir(parents=True, exist_ok=True)
+                (nested / "go.mod").write_text("module fixture\n")
+                result = self.check("inventory")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("nested go.mod", result.stderr)
+                (nested / "go.mod").unlink()
+        self.assert_success(self.check("inventory"))
 
     def test_consumer_uses_fresh_cache_proxy_checksums_and_exact_version(self):
         self.state["get_failures"] = 2
@@ -455,14 +453,14 @@ class ReleaseToolsTest(unittest.TestCase):
     def test_consumer_removes_its_readonly_module_cache(self):
         self.state["readonly_cache"] = True
         self.save()
-        self.assert_success(self.check("consumer", "tools", "v0.5.3"))
+        self.assert_success(self.check("consumer", ".", "v0.5.3"))
         get = next(e for e in self.commands("go") if e["args"][:1] == ["get"])
         self.assertFalse(Path(get["cache"]).exists())
 
     def test_consumer_retries_are_bounded(self):
         self.state["get_failures"] = 100
         self.save()
-        self.assertNotEqual(self.check("consumer", "tools", "v0.5.3").returncode, 0)
+        self.assertNotEqual(self.check("consumer", ".", "v0.5.3").returncode, 0)
         self.assertEqual(len([e for e in self.commands("go") if e["args"][:1] == ["get"]]), 6)
         self.assertEqual(len(self.commands("sleep")), 5)
         self.assert_no_publication()
@@ -473,7 +471,7 @@ class ReleaseToolsTest(unittest.TestCase):
                 original = dict(self.state)
                 self.state[field] = value
                 self.save()
-                self.assertNotEqual(self.check("consumer", "tools", "v0.5.3").returncode, 0)
+                self.assertNotEqual(self.check("consumer", ".", "v0.5.3").returncode, 0)
                 self.state = original
         self.assertFalse([e for e in self.commands("go") if e["args"][:1] == ["build"]])
 

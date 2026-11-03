@@ -20,10 +20,8 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# go.work / go.work.sum are committed on purpose: extension and example
-# modules are developed through the workspace, and published modules carry no
-# replace directives, so a fresh clone needs go.work to build everything
-# against the local source.
+# go.work / go.work.sum are committed on purpose: example modules are
+# developed through the workspace against the local root module.
 
 # env file
 .env

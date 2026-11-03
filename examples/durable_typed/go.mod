@@ -2,10 +2,7 @@ module github.com/taylortyler-1/automata/examples/durable_typed
 
 go 1.26.2
 
-require (
-	github.com/taylortyler-1/automata v0.5.2
-	github.com/taylortyler-1/automata/extensions/sqlite v0.5.2
-)
+require github.com/taylortyler-1/automata v0.5.2
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -20,7 +17,4 @@ require (
 	modernc.org/sqlite v1.51.0 // indirect
 )
 
-replace (
-	github.com/taylortyler-1/automata => ../..
-	github.com/taylortyler-1/automata/extensions/sqlite => ../../extensions/sqlite
-)
+replace github.com/taylortyler-1/automata => ../..

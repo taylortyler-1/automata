@@ -20,50 +20,55 @@ It is built for agents inside web servers and job workers, not notebooks.
 - **Observable.** Live streams deliver provisional deltas for UIs. Committed
   events are durable facts that an observer reads from a cursor and resumes
   after a disconnect or restart. Runs emit `slog` logs and `tracing` spans.
-- **Dependency-free core.** The root module has no requirements. Vendor
-  SDKs and database drivers live in separate `extensions/*` modules.
+- **Dependency-free core.** `core`, `agents`, `tools`, `retry`, and
+  `tracing` import only the standard library. Vendor SDKs and database
+  drivers are confined to `providers/*` and `extensions/*` packages, and Go
+  compiles a dependency only when you import a package that uses it.
 
 ## Layout
 
-| Module / package | What it is |
+| Package | What it is |
 | --- | --- |
 | `core` | `Agent` definitions, `Runtime`, tools, child agents, conversations, approvals, streaming, and the storage port |
 | `agents` | Typed shorthand over `core`: `Define[I, O]` builds and registers a definition, then runs it or exposes it as a child tool |
 | `core/storetest` | Conformance suite for `core.Store` adapters |
 | `core/coretest` | Test kit: a scripted provider (`NewProvider`, `NewStreamProvider`) that replays turns and records requests, plus `Runtime` fixtures |
-| `tools` (module) | First-party tools: `HTTPFetch`, `ReadFile`/`WriteFile` (rooted), `Shell` (allow-listed), with pluggable `FileSystem` and `Executor` backends for sandboxes, `WebSearch`; `LoadAgentsMD` and `LoadSkills` for AGENTS.md instructions and Agent Skills |
-| `extensions/browser` (module) | Chromium page tools through go-rod: navigate (fail-closed host allowlist; optional user approval for new hosts), accessibility snapshots with element refs, batched actions, screenshots |
-| `extensions/sqlite` (module) | The supported persistent store: one exclusive local owner, WAL, `synchronous=FULL` |
-| `extensions/claude` (module) | Anthropic provider; thinking, images, prompt caching, native structured output |
-| `extensions/openai` (module) | OpenAI Chat Completions provider (stdlib-only); any OpenAI-compatible base URL |
-| `extensions/openrouter` (module) | OpenRouter Chat Completions provider (official SDK); text, reasoning, images, tools, and structured output |
-| `extensions/tavily` (module) | Tavily backend for `tools.WebSearch` |
-| `extensions/mcp` (module) | Model Context Protocol through the official Go SDK: `mcpclient` turns a server's tools into `core.Tool`s, `mcpserver` serves `core.Tool`s |
-| `extensions/httpserver` (module) | `net/http` and SSE API over a `Runtime`: admission, listing, status, resumable event and change streams, cancellation, wait answers, manifests |
-| `host` (module) | `host.Main`: opens the store, registers definitions, recovers, applies retention, serves the HTTP API, and runs host-owned background work such as a scheduler |
+| `tools` | First-party tools: `HTTPFetch`, `ReadFile`/`WriteFile` (rooted), `Shell` (allow-listed), with pluggable `FileSystem` and `Executor` backends for sandboxes, `WebSearch`; `LoadAgentsMD` and `LoadSkills` for AGENTS.md instructions and Agent Skills |
+| `extensions/browser` | Chromium page tools through go-rod: navigate (fail-closed host allowlist; optional user approval for new hosts), accessibility snapshots with element refs, batched actions, screenshots |
+| `extensions/sqlite` | The supported persistent store: one exclusive local owner, WAL, `synchronous=FULL` |
+| `providers/claude` | Anthropic provider; thinking, images, prompt caching, native structured output |
+| `providers/openai` | OpenAI Chat Completions provider (stdlib-only); any OpenAI-compatible base URL |
+| `providers/openrouter` | OpenRouter Chat Completions provider (official SDK); text, reasoning, images, tools, and structured output |
+| `extensions/tavily` | Tavily backend for `tools.WebSearch` |
+| `extensions/mcp` | Model Context Protocol through the official Go SDK: `mcpclient` turns a server's tools into `core.Tool`s, `mcpserver` serves `core.Tool`s |
+| `extensions/httpserver` | `net/http` and SSE API over a `Runtime`: admission, listing, status, resumable event and change streams, cancellation, wait answers, manifests |
+| `host` | `host.Main`: opens the store, registers definitions, recovers, applies retention, serves the HTTP API, and runs host-owned background work such as a scheduler |
 | `retry`, `tracing` | Backoff policy and span interfaces used by core |
 | `examples/*` (modules) | Runnable demos (see [Examples](#examples)) |
 
-Extensions and examples are separate Go modules tied together by `go.work`,
-so importing `core` never pulls a vendor SDK into your build.
+Everything except `examples/*` is one Go module,
+`github.com/taylortyler-1/automata`, with one version. Examples are separate
+modules tied to the checkout by `go.work` and are never published. Importing
+`core` never pulls a vendor SDK into your build: Go downloads and compiles a
+dependency's source only when a package you import needs it.
 
 ### Releases
 
-The root module, `tools`, and every extension release independently, with tags
-such as `v0.5.3`, `tools/v0.5.3`, and `extensions/openai/v0.5.3`. Internal
-requirements retain their minimum compatible versions: installing the latest
-adapter does not necessarily install the latest core.
+The module releases with plain tags such as `v0.7.0`. Providers, extensions,
+`tools`, and `host` share that version, so there is no cross-module
+compatibility matrix to track. (Through v0.6.x, `tools`, `host`, and each
+extension were separate modules with tags such as `extensions/openai/v0.5.3`;
+see [Upgrading to v0.7](#upgrading-to-v07).)
 
-Use the **Release module** GitHub Actions workflow to select one module, an exact
+Use the **Release module** GitHub Actions workflow with module `.`, an exact
 version, and optionally a commit on `main`. It validates the exact commit against
 both the workspace and published dependencies, waits for approval in the protected
-`release` environment, then creates only that module's immutable tag and GitHub
+`release` environment, then creates the immutable tag and GitHub
 Release. A fresh external consumer verifies installation after publication.
 There are no automatic dependency bumps, release commits, or checksum follow-ups.
 
 Dependency changes and finalized `go.mod`/`go.sum` files belong in ordinary PRs.
-Release dependencies first when an adapter needs a new core or tools API.
-Published modules must contain no replacements or exclusions; the release gate
+The published module must contain no replacements or exclusions; the release gate
 rejects them rather than editing them. `examples/*` retain development
 replacements and are never tagged.
 
@@ -74,7 +79,7 @@ through the old `scripts/release.sh ... --push` interface is disabled.
 
 Define an agent, register it with a runtime, and run a task. `provider` is
 any `core.Provider`, for example `claude.New(model, apiKey)` from
-`extensions/claude`.
+`providers/claude`.
 
 ```go
 // ExampleRuntime in core/example_test.go
@@ -836,6 +841,29 @@ Examples that call a model need credentials; the others run offline.
   ```sh
   go run ./examples/deep_research "the impact of GLP-1 drugs on US healthcare costs"
   ```
+
+## Upgrading to v0.7
+
+v0.7 folds every nested library module into the root module. `tools`, `host`,
+and `extensions/*` no longer have their own `go.mod`, and the three provider
+adapters move to `providers/`. There are no API or behavior changes.
+
+| Before (separate module) | After (package in the root module) |
+| --- | --- |
+| `.../automata/extensions/claude` | `.../automata/providers/claude` |
+| `.../automata/extensions/openai` | `.../automata/providers/openai` |
+| `.../automata/extensions/openrouter` | `.../automata/providers/openrouter` |
+| `.../automata/extensions/{mcp,sqlite,httpserver,browser,tavily}` | unchanged import path |
+| `.../automata/tools`, `.../automata/host` | unchanged import path |
+
+Upgrade steps:
+
+1. Rewrite the three provider imports to `providers/...`.
+2. Drop every nested Automata requirement from `go.mod`, for example
+   `go mod edit -droprequire=github.com/taylortyler-1/automata/extensions/sqlite`.
+   Keeping one alongside the new root version makes Go report an *ambiguous
+   import*, because two modules then provide the same package path.
+3. `go get github.com/taylortyler-1/automata@v0.7.0` and `go mod tidy`.
 
 ## Upgrading to v0.6.3
 

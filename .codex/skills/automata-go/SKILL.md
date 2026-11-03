@@ -11,7 +11,7 @@ metadata:
 
 Automata runs agents through one durable lifecycle. A `core.Agent` is an immutable definition (provider, prompt, tools, limits, output contract). A `core.Runtime` admits each task before running it, commits every step, and recovers after a restart without repeating completed work. Keep business state, authorization, and deterministic verification in application code.
 
-This skill targets core v0.6.0 and the Runtime API, first released in v0.5.0. Direct `Agent.Run`, `Session`, `RunTyped`, `AsTool`, and `Approver` no longer exist; if an application uses them, migrate it with the table in the repository README ("Upgrading from v0.4"). Inspect `go.mod` first and keep the separately versioned Automata modules on compatible releases. Tool progress (`core.ReportToolProgress`) and `extensions/mcp` require core v0.5.3 or later. HTTP and host are published at v0.6.0; use SQLite v0.5.3 or later for the cancellation/reopen fix. Module versions need not match. Before upgrading a persistent v0.5 store, stop the owner and back it up: core v0.6 upgrades Runtime storage from version 9 to 10, and rollback requires restoring the backup.
+This skill targets core v0.6.0 and the Runtime API, first released in v0.5.0. Direct `Agent.Run`, `Session`, `RunTyped`, `AsTool`, and `Approver` no longer exist; if an application uses them, migrate it with the table in the repository README ("Upgrading from v0.4"). Inspect `go.mod` first. From v0.7 every library package (providers, extensions, `tools`, `host`) is in the one root module `github.com/taylortyler-1/automata`; an application on v0.6.x that requires nested Automata modules must follow the README's "Upgrading to v0.7" (rewrite `extensions/{claude,openai,openrouter}` imports to `providers/...` and drop the nested requirements). Before upgrading a persistent v0.5 store, stop the owner and back it up: core v0.6 upgrades Runtime storage from version 9 to 10, and rollback requires restoring the backup.
 
 ## Workflow
 
@@ -21,13 +21,13 @@ This skill targets core v0.6.0 and the Runtime API, first released in v0.5.0. Di
    - Decide whether runs must survive a restart. If so, use a persistent store (`extensions/sqlite`); otherwise `core.NewEphemeralRuntime()`.
    - Do not introduce child agents unless distinct roles, tools, or permissions justify them.
 
-2. **Add only the modules in use**
+2. **Import only the packages in use**
    - Core: `github.com/taylortyler-1/automata/core` (no dependencies)
    - Persistent store: `github.com/taylortyler-1/automata/extensions/sqlite`
-   - Anthropic: `.../extensions/claude`; OpenAI-compatible: `.../extensions/openai`; OpenRouter: `.../extensions/openrouter`
+   - Anthropic: `.../providers/claude`; OpenAI-compatible: `.../providers/openai`; OpenRouter: `.../providers/openrouter`
    - First-party tools: `.../tools`; Tavily search backend: `.../extensions/tavily`
    - MCP servers: `.../extensions/mcp` (`mcpclient` exposes a server's tools as `core.Tool`s; `mcpserver` serves `core.Tool`s to MCP clients)
-   - HTTP/SSE API: `.../extensions/httpserver`; durable server entry point: `.../host` (published v0.6.0 dependencies, no local replacements)
+   - HTTP/SSE API: `.../extensions/httpserver`; durable server entry point: `.../host`
 
 3. **Design boundaries before prompts**
    - Give each agent one role and only the tools it needs.
@@ -69,7 +69,7 @@ import (
     "time"
 
     "github.com/taylortyler-1/automata/core"
-    "github.com/taylortyler-1/automata/extensions/claude"
+    "github.com/taylortyler-1/automata/providers/claude"
 )
 
 type timeArgs struct {

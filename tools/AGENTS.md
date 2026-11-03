@@ -14,7 +14,7 @@ This standalone module supplies reusable `core.Tool` implementations.
 - Parent cancellation is fatal. A tool's own timeout should normally return a
   plain recoverable error so the model can adapt.
 - Do not mark non-idempotent failures retryable.
-- Keep the module dependency-light; search vendors belong in `extensions/*`.
+- Keep the package stdlib-only; search vendors belong in `extensions/*`.
 
-Validate here with `go test ./...`; use `GOWORK=off go test ./...` when module
+Validate here with `go test ./...`; use `GOWORK=off go test ./...` when
 dependencies or public interfaces change.

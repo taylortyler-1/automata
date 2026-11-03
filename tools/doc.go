@@ -11,7 +11,7 @@
 // validation, limits and effect reports, against a [FileSystem] and an
 // [Executor] that a sandbox backend implements.
 //
-// Everything composes with the existing core.Func schema machinery; the module
+// Everything composes with the existing core.Func schema machinery; the package
 // adds no dependencies beyond core itself.
 //
 // # Error, effect, and recovery semantics

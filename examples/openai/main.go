@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/taylortyler-1/automata/core"
-	"github.com/taylortyler-1/automata/extensions/openai"
+	"github.com/taylortyler-1/automata/providers/openai"
 )
 
 type timeArgs struct {

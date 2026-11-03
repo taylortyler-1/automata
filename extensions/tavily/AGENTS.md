@@ -8,4 +8,4 @@
 - Never require a live API key for unit tests; use an HTTP test server.
 
 Validate with `go test ./...` and, for dependency changes,
-`GOWORK=off go test ./...` from this module.
+`GOWORK=off go test ./...` from this package.

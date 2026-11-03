@@ -1,6 +1,6 @@
 # SQLite runtime store
 
-This module is the supported local persistent `core.Store` adapter for
+This package is the supported local persistent `core.Store` adapter for
 `core.Runtime`. It passes the `core/storetest` conformance suite.
 
 It uses WAL, `synchronous=FULL`, one database connection, and a nonblocking OS

@@ -58,7 +58,7 @@ import (
 	"github.com/taylortyler-1/automata/core"
 )
 
-const modulePath = "github.com/taylortyler-1/automata/extensions/mcp"
+const modulePath = "github.com/taylortyler-1/automata"
 
 // Options configures [Connect]. The zero value is valid.
 type Options struct {

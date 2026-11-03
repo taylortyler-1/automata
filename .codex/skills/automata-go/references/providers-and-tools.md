@@ -1,12 +1,11 @@
 # Providers, First-Party Tools, and MCP
 
-Automata keeps provider SDKs, the SQLite store, the MCP SDK, and tool integrations in separate Go modules. Add only what the application uses and keep module releases compatible. These modules are tagged independently: internal requirements are minimum compatible versions, not coordinated release numbers. The v0.6 server baseline is core v0.6.0, SQLite v0.5.3, HTTP v0.6.0, and host v0.6.0; MCP remains independently tagged at v0.5.3. Check a module's published version rather than assuming checkout-only changes are available via `@latest`.
+Automata ships as one Go module, `github.com/taylortyler-1/automata`: provider adapters (`providers/*`), the SQLite store, the MCP integration, tools, HTTP, and host are packages in it and share its version. Import only the packages the application uses; Go compiles a vendor SDK only when an imported package needs it. Through v0.6.x these were separately tagged modules, so an application still on v0.6 should follow the README's "Upgrading to v0.7". Check the published version rather than assuming checkout-only changes are available via `@latest`.
 
 ## Anthropic Claude
 
 ```bash
-go get github.com/taylortyler-1/automata@latest \
-  github.com/taylortyler-1/automata/extensions/claude@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ```go
@@ -33,8 +32,7 @@ Notes:
 ## OpenAI-Compatible Chat Completions
 
 ```bash
-go get github.com/taylortyler-1/automata@latest \
-  github.com/taylortyler-1/automata/extensions/openai@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ```go
@@ -45,7 +43,7 @@ provider := openai.
 agent, err := core.New(provider, core.AgentConfig{SystemPrompt: prompt})
 ```
 
-The stdlib-only provider works with OpenAI-compatible Chat Completions endpoints such as Ollama, vLLM, or a compatible gateway by changing the base URL. For OpenRouter, prefer the dedicated `extensions/openrouter` module (reasoning output and cache-write usage).
+The stdlib-only provider works with OpenAI-compatible Chat Completions endpoints such as Ollama, vLLM, or a compatible gateway by changing the base URL. For OpenRouter, prefer the dedicated `providers/openrouter` package (reasoning output and cache-write usage).
 
 Notes:
 
@@ -62,8 +60,7 @@ Notes:
 ## OpenRouter
 
 ```bash
-go get github.com/taylortyler-1/automata@latest \
-  github.com/taylortyler-1/automata/extensions/openrouter@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ```go
@@ -120,8 +117,7 @@ The runtime streams from providers that implement `core.StreamProvider`, even fo
 ## SQLite Store
 
 ```bash
-go get github.com/taylortyler-1/automata@v0.6.0 \
-  github.com/taylortyler-1/automata/extensions/sqlite@v0.5.3
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ```go
@@ -136,10 +132,10 @@ Use SQLite v0.5.3 or later for the transaction cancellation/reopen fix. Before o
 ## HTTP API and Host
 
 ```bash
-go get github.com/taylortyler-1/automata/host@v0.6.0
+go get github.com/taylortyler-1/automata@latest
 ```
 
-Host v0.6.0 selects core v0.6.0, `extensions/httpserver` v0.6.0, and SQLite v0.5.3 without replacements. Use `host.Main(host.Options{Register: registerDefinitions})` for a standalone service, or `host.Run(ctx, options)` for an embedded lifecycle. It opens the store, registers definitions, recovers, runs retention, and drains HTTP and closes the Runtime on shutdown. Register every revision persisted runs may pin.
+`host`, `extensions/httpserver`, and `extensions/sqlite` are packages in the root module, so one version covers them. Use `host.Main(host.Options{Register: registerDefinitions})` for a standalone service, or `host.Run(ctx, options)` for an embedded lifecycle. It opens the store, registers definitions, recovers, runs retention, and drains HTTP and closes the Runtime on shutdown. Register every revision persisted runs may pin.
 
 For an existing Runtime, use `httpserver.New(httpserver.Config{Runtime: rt, Authorize: authorize})` and serve the returned handler. Authorization is required; `Scope` enables tenant isolation and `Actor` supplies audit identity. Content is redacted unless `ExposeContent` is enabled. JSON/SSE routes expose admission, listing, status, committed events, waits, cancellation, reconciliation, hook acknowledgement, definitions, and a global change feed for single-tenant servers. The unauthenticated `/v1/openapi.json` route exposes the API schema, not run data.
 
@@ -183,10 +179,10 @@ tools := []core.Tool{core.WithToolRetry(idempotentTool, retry.DefaultConfig())}
 
 Do not retry non-idempotent operations this way; the runtime rejects a retried child tool.
 
-## First-Party Tools Module
+## First-Party Tools
 
 ```bash
-go get github.com/taylortyler-1/automata/tools@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ### Sandboxed File Access
@@ -251,8 +247,7 @@ fetch := tools.HTTPFetch()
 ### Vendor-Neutral Web Search with Tavily
 
 ```bash
-go get github.com/taylortyler-1/automata/tools@latest \
-  github.com/taylortyler-1/automata/extensions/tavily@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
 ```go
@@ -274,10 +269,10 @@ Tavily defaults to a 30-second client and asks for raw results rather than a syn
 ## MCP Servers
 
 ```bash
-go get github.com/taylortyler-1/automata/extensions/mcp@latest
+go get github.com/taylortyler-1/automata@latest
 ```
 
-`extensions/mcp` wraps the official MCP Go SDK (`github.com/modelcontextprotocol/go-sdk/mcp`), which owns transports, framing, sessions, authentication, and capability negotiation. It requires core v0.5.3 or later (it uses tool progress).
+`extensions/mcp` wraps the official MCP Go SDK (`github.com/modelcontextprotocol/go-sdk/mcp`), which owns transports, framing, sessions, authentication, and capability negotiation. It ships in the same module as core.
 
 ### Using a Server's Tools
 
