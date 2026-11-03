@@ -51,7 +51,7 @@ HTTP and host `v0.6.0` are published, with host pinned to that SQLite patch.
 
 | Change | Inspect together |
 | --- | --- |
-| Message or block model | `core/blocks.go`, `core/types.go`, JSON round-trip tests, every provider adapter present under `extensions/`, `extensions/mcp` content conversion |
+| Message or block model | `core/blocks.go`, `core/types.go`, JSON round-trip tests, every provider adapter present under `providers/`, `extensions/mcp` content conversion |
 | Run loop or errors | `core/loop.go`, `core/loopmachine.go`, `core/runtime_execute.go` (failure and attention transitions), `core/runtime_snapshot.go` (`snapshotError`), `README.md` |
 | Tool execution | `core/tools.go`, `core/runtime_tools.go`, waits, policy, effect policy, rich results, child tools, `extensions/mcp` (error mapping; schema lowering follows `core/schemacontract.go`) |
 | Streaming or tool progress | `core/stream.go`, `core/progress.go`, `core/runtime_live.go` (`publish`, `attachAncestors`), accumulator, every affected provider stream implementation, `extensions/mcp` progress bridging (client and server) |
@@ -87,7 +87,7 @@ ladder. Then discover, classify, and test.
 
 | Class | Members | Properties |
 | --- | --- | --- |
-| Published | root (`core`, `retry`, `tracing`), `tools`, `host`, and extensions listed in `scripts/modules.json` | tagged independently; release validation rejects replacements and exclusions |
+| Published | root (all library packages, including `core`, `agents`, `tools`, `host`, `providers/*`, `extensions/*`, `retry`, and `tracing`) | one shared version and root tag; release validation rejects replacements and exclusions |
 | Example | `examples/*` | `replace` directives as dev conveniences, never tagged, never released |
 | Private fixture | `internal/durabletest` | local-only test fixture, gitignored and absent from `go.work`, never published |
 

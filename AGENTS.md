@@ -22,7 +22,8 @@ Automata is a single-module Go library for provider-neutral agent execution
 - `core` owns provider-neutral messages, agents, sessions, tool execution,
   streaming, typed output, approvals, and hooks.
 - `retry` and `tracing` are small provider-neutral support packages.
-- `tools` and every directory under `extensions/` are separate Go modules.
+- `tools`, `host`, `providers/*`, and `extensions/*` are packages in the root
+  module and share its version; only `examples/*` are separate Go modules.
 - Vendor SDK types must not cross into `core`. Translate them at the extension
   boundary.
 - Examples demonstrate public APIs. They must not become dependencies of
