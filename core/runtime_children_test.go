@@ -2386,11 +2386,10 @@ func TestRuntimeDurableSharedDeadlineFinalizesWokenParent(t *testing.T) {
 	if snapshot.Failure == nil || snapshot.Failure.Kind != FailureDeadline || snapshot.Result.Status != RunCancelled {
 		t.Fatalf("parent = %s failure %#v", snapshot.Result.Status, snapshot.Failure)
 	}
-	child, err := runtime.Handle(snapshot.ToolBatches[0].Invocations[0].ChildRunID).Snapshot(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if child.State != RuntimeTerminal || child.Failure == nil || child.Failure.Kind != FailureDeadline {
+	// The parent may terminalize before its running child finishes settling
+	// at their shared deadline. Wait for both instead of assuming an order.
+	child := waitForRunState(t, runtime, snapshot.ToolBatches[0].Invocations[0].ChildRunID, RuntimeTerminal)
+	if child.Failure == nil || child.Failure.Kind != FailureDeadline {
 		t.Fatalf("child = %s failure %#v", child.State, child.Failure)
 	}
 }
