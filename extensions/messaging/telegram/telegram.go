@@ -52,6 +52,9 @@ type Config struct {
 	Logger     *slog.Logger
 	// Location formats times in notices. Defaults to UTC.
 	Location *time.Location
+	// RetryDelay is how long Poll waits before fetching again after a failed
+	// fetch or a transient handling failure. Zero selects three seconds.
+	RetryDelay time.Duration
 }
 
 // Handler receives verified inbound events; *messaging.Router implements it.
@@ -84,6 +87,9 @@ func New(cfg Config) (*Bot, error) {
 	}
 	if cfg.Location == nil {
 		cfg.Location = time.UTC
+	}
+	if cfg.RetryDelay <= 0 {
+		cfg.RetryDelay = 3 * time.Second
 	}
 	b := &Bot{cfg: cfg, http: cfg.HTTPClient, log: cfg.Logger}
 	if b.http == nil {
@@ -159,8 +165,10 @@ func (b *Bot) Send(ctx context.Context, out messaging.Outbound) (messaging.Messa
 
 // Poll long-polls getUpdates and passes each update to h until ctx ends. It
 // deletes any configured webhook first, since Telegram allows only one of the
-// two. Updates are confirmed only after h returns, so a crash redelivers the
-// update; the router's handling is idempotent.
+// two. An update is confirmed (the offset moves past it) only once h has
+// handled it; after a transient failure Poll waits and fetches again from that
+// update, so later updates are not processed ahead of it. The router's
+// handling is idempotent, so a redelivered update is safe.
 func (b *Bot) Poll(ctx context.Context, h Handler) error {
 	if err := b.call(ctx, "deleteWebhook", struct{}{}, nil); err != nil {
 		return fmt.Errorf("telegram: delete webhook before polling: %w", err)
@@ -177,23 +185,42 @@ func (b *Bot) Poll(ctx context.Context, h Handler) error {
 		}
 		if err != nil {
 			b.log.Warn("telegram: getUpdates", "error", err)
-			select {
-			case <-ctx.Done():
+			if !b.pause(ctx) {
 				return ctx.Err()
-			case <-time.After(3 * time.Second):
 			}
 			continue
 		}
 		for _, u := range updates {
-			b.dispatch(ctx, h, u)
+			if err := b.dispatch(ctx, h, u); err != nil {
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+				b.log.Warn("telegram: update not handled; will retry", "update", u.UpdateID, "error", err)
+				if !b.pause(ctx) {
+					return ctx.Err()
+				}
+				break
+			}
 			offset = u.UpdateID + 1
 		}
 	}
 }
 
+func (b *Bot) pause(ctx context.Context) bool {
+	t := time.NewTimer(b.cfg.RetryDelay)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-t.C:
+		return true
+	}
+}
+
 // WebhookHandler serves Telegram webhook deliveries. Register it with
 // setWebhook, passing the same secret_token as Config.WebhookSecret.
-// Requests without the matching secret are rejected before parsing.
+// Requests without the matching secret are rejected before parsing. A
+// transient handling failure answers 503, so Telegram redelivers the update.
 func (b *Bot) WebhookHandler(h Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got := r.Header.Get("X-Telegram-Bot-Api-Secret-Token")
@@ -210,12 +237,20 @@ func (b *Bot) WebhookHandler(h Handler) http.Handler {
 			http.Error(w, "bad update", http.StatusBadRequest)
 			return
 		}
-		b.dispatch(r.Context(), h, u)
+		if err := b.dispatch(r.Context(), h, u); err != nil {
+			b.log.Warn("telegram: webhook update not handled; asking for redelivery", "update", u.UpdateID, "error", err)
+			http.Error(w, "temporarily unavailable", http.StatusServiceUnavailable)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 	})
 }
 
-func (b *Bot) dispatch(ctx context.Context, h Handler, u update) {
+// dispatch hands one update to h. It returns an error only when h failed
+// transiently (see [messaging.Handled]) and the update must be redelivered.
+// Failing to show the sender a confirmation never causes a redelivery: the
+// action itself is already committed.
+func (b *Bot) dispatch(ctx context.Context, h Handler, u update) error {
 	delivery := strconv.FormatInt(u.UpdateID, 10)
 	switch {
 	case u.CallbackQuery != nil:
@@ -236,12 +271,12 @@ func (b *Bot) dispatch(ctx context.Context, h Handler, u update) {
 			in.Action = messaging.ActionDeny
 		}
 		text, err := h.Handle(ctx, in)
+		if !messaging.Handled(err) {
+			// Leave the button spinning; the redelivery answers it.
+			return err
+		}
 		if err != nil {
 			text = err.Error()
-			if !isUserError(err) {
-				b.log.Error("telegram: handle button", "error", err)
-				text = "Something went wrong; try again."
-			}
 		}
 		if err := b.call(ctx, "answerCallbackQuery", answerCallbackRequest{CallbackQueryID: q.ID, Text: truncate(text, 190)}, nil); err != nil {
 			b.log.Warn("telegram: answerCallbackQuery", "error", err)
@@ -257,17 +292,16 @@ func (b *Bot) dispatch(ctx context.Context, h Handler, u update) {
 			in.ReplyTo = strconv.FormatInt(m.ReplyTo.MessageID, 10)
 		}
 		text, err := h.Handle(ctx, in)
+		if !messaging.Handled(err) {
+			return err
+		}
 		if errors.Is(err, messaging.ErrNotApprover) {
 			// Strangers get no reply, so the bot does not advertise itself.
 			b.log.Info("telegram: ignored message from unlisted user", "user", in.User)
-			return
+			return nil
 		}
 		if err != nil {
 			text = err.Error()
-			if !isUserError(err) {
-				b.log.Error("telegram: handle message", "error", err)
-				text = "Something went wrong; try again."
-			}
 		}
 		if text != "" {
 			if _, err := b.Send(ctx, messaging.Outbound{Chat: in.Chat, Text: text, ReplyTo: in.MessageID}); err != nil {
@@ -275,11 +309,7 @@ func (b *Bot) dispatch(ctx context.Context, h Handler, u update) {
 			}
 		}
 	}
-}
-
-func isUserError(err error) bool {
-	return errors.Is(err, messaging.ErrNotApprover) || errors.Is(err, messaging.ErrUnknownNotice) ||
-		errors.Is(err, messaging.ErrAlreadySettled)
+	return nil
 }
 
 func (b *Bot) ref(msg message) messaging.MessageRef {

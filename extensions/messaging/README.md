@@ -71,8 +71,14 @@ question tool.
 - Button `callback_data` carries `a:` or `d:` and a 22 character random token,
   well under Telegram's 64 byte limit. The token points at the wait in the
   router's store and is not a credential.
-- Updates are confirmed only after they are handled, so a crash redelivers
-  them; answering a wait and admitting a message are both idempotent.
+- An update is confirmed only after the router has handled it. A transient
+  failure, such as the store being briefly unavailable, leaves it
+  unconfirmed: `Poll` waits and fetches again from that update before any
+  later one, and the webhook answers 503 so Telegram redelivers it. Refusals
+  that retrying cannot change (an unlisted sender, an unknown or settled
+  notice) count as handled. Answering a wait and admitting a message are both
+  idempotent, so redelivery is safe, and a failed confirmation toast never
+  causes one.
 
 ## Not yet
 

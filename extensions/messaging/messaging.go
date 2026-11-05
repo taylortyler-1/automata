@@ -41,7 +41,21 @@ var (
 	// ErrAlreadySettled reports an answer to a wait that is no longer
 	// pending: answered, expired or cancelled.
 	ErrAlreadySettled = errors.New("this request was already settled")
+	// ErrInvalidAction reports an event the router can never apply, such as
+	// a button on a question or an unknown action or channel.
+	ErrInvalidAction = errors.New("this action is not supported")
 )
+
+// Handled reports whether a [Router.Handle] result is final for the event,
+// so the channel should confirm the delivery to the platform: success, or an
+// error that retrying cannot change (the sender is not an approver, the
+// notice is unknown or settled, or the action is invalid). Any other error is
+// transient, for example a store failure, and the channel must leave the
+// event to be redelivered.
+func Handled(err error) bool {
+	return err == nil || errors.Is(err, ErrNotApprover) || errors.Is(err, ErrUnknownNotice) ||
+		errors.Is(err, ErrAlreadySettled) || errors.Is(err, ErrInvalidAction)
+}
 
 // MessageRef identifies one posted chat message.
 type MessageRef struct {

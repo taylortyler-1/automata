@@ -399,10 +399,13 @@ func (r *Router) settle(ctx context.Context, runID string, wait core.WaitSnapsho
 // Handle applies one verified inbound event. The returned text is a short
 // confirmation a channel may show the sender (for example as a button
 // toast); errors such as [ErrNotApprover] and [ErrAlreadySettled] are meant
-// to be shown too. Handle is idempotent for a redelivered event.
+// to be shown too. When [Handled] reports false for the error, the failure
+// is transient and the channel must let the platform redeliver the event.
+// Handle is idempotent for a redelivered event: an answer already given
+// succeeds again, and a message already admitted starts no second run.
 func (r *Router) Handle(ctx context.Context, in Inbound) (string, error) {
 	if _, ok := r.channels[in.Channel]; !ok {
-		return "", fmt.Errorf("messaging: unknown channel %q", in.Channel)
+		return "", fmt.Errorf("%w: unknown channel %q", ErrInvalidAction, in.Channel)
 	}
 	if !r.approvers.Allowed(in.Channel, in.User) {
 		return "", ErrNotApprover
@@ -430,13 +433,13 @@ func (r *Router) Handle(ctx context.Context, in Inbound) (string, error) {
 		}
 		return r.submit(ctx, in)
 	default:
-		return "", fmt.Errorf("messaging: unknown inbound kind %q", in.Kind)
+		return "", fmt.Errorf("%w: unknown inbound kind %q", ErrInvalidAction, in.Kind)
 	}
 }
 
 func (r *Router) answerAction(ctx context.Context, rec noticeRecord, in Inbound) (string, error) {
 	if rec.Notice.Kind != core.WaitApproval {
-		return "", errors.New("reply to this message with your answer")
+		return "", fmt.Errorf("%w: reply to this message with your answer", ErrInvalidAction)
 	}
 	resolution := core.WaitResolution{Actor: Actor(in.Channel, in.User), ActionDigest: rec.ActionDigest}
 	var done string
@@ -446,7 +449,7 @@ func (r *Router) answerAction(ctx context.Context, rec noticeRecord, in Inbound)
 	case ActionDeny:
 		resolution.Decision, resolution.Reason, done = core.Deny, "denied in "+in.Channel, "Denied"
 	default:
-		return "", fmt.Errorf("messaging: unknown action %q", in.Action)
+		return "", fmt.Errorf("%w: unknown action %q", ErrInvalidAction, in.Action)
 	}
 	return done, r.resolve(ctx, rec, resolution)
 }
