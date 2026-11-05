@@ -22,10 +22,20 @@ channel (`extensions/messaging/telegram`); Slack and others plug into the same
 
 The router follows `Runtime.WaitChanges`, so it sees waits from every run
 without the host tracking run IDs. Its own records (tokens, posted message
-IDs, feed cursor, sent replies) live in the store you pass, normally the
-runtime's own, so restarts neither lose nor repost notices. A notice is
-recorded before it is sent, so a crash between the two reposts it at most
-once.
+IDs, open notices, feed cursor, sent replies) live in the store you pass,
+normally the runtime's own. On restart it replays the feed from its cursor
+and reconciles every notice still open. On first start, or when retention
+has pruned the feed past its cursor, it resynchronizes from current state
+before saving a new cursor: it posts notices for waiting runs, settles open
+notices whose waits were resolved, expired or cancelled (or whose run is
+gone), and posts the output of retained finished routed runs that have no
+reply record. A change whose events were pruned is reconciled from the run's
+snapshot.
+
+**Delivery is at least once.** Sending to Telegram and writing the local
+record are not atomic, so a crash after a message is sent but before it is
+recorded sends that notice, edit, or reply again on restart. Nothing is
+skipped, but a rare duplicate is possible.
 
 ## Who may answer
 

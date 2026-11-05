@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -19,6 +20,7 @@ import (
 const (
 	noticesBucket  = "messaging_notices"
 	waitsBucket    = "messaging_waits"
+	openBucket     = "messaging_open"
 	messagesBucket = "messaging_messages"
 	repliesBucket  = "messaging_replies"
 	metaBucket     = "messaging_meta"
@@ -125,17 +127,25 @@ func New(cfg Config) (*Router, error) {
 // Run follows the runtime's change feed until ctx ends: it posts a notice for
 // every pending approval or question, settles notices when their waits
 // settle, and posts routed runs' final output. The feed cursor is stored, so
-// a restart resumes where it stopped. On first start, or when retention has
-// pruned the cursor, it posts notices for every run already waiting.
+// a restart replays the changes after it. On every start it also reconciles
+// notices still open in its records. On first start, or when retention has
+// pruned the cursor, it resynchronizes from current state instead (see
+// resync).
+//
+// Delivery to chat is at least once: a post or send and the record of it are
+// not atomic, so a crash between the two repeats that message once on
+// restart. Nothing is skipped.
 func (r *Router) Run(ctx context.Context) error {
 	cursor, ok, err := r.loadCursor(ctx)
 	if err != nil {
 		return err
 	}
-	if !ok {
-		if cursor, err = r.resyncUntilDone(ctx); err != nil {
+	if ok {
+		if err := r.untilDone(ctx, "reconcile open notices", r.reconcileOpen); err != nil {
 			return err
 		}
+	} else if cursor, err = r.resyncUntilDone(ctx); err != nil {
+		return err
 	}
 	for {
 		page, err := r.rt.WaitChanges(ctx, cursor, feedPageLimit, core.WithChangeEvents())
@@ -174,7 +184,9 @@ func (r *Router) Run(ctx context.Context) error {
 				}
 			}
 			cursor = change.Sequence
-			if err := r.saveCursor(ctx, cursor); err != nil {
+			if err := r.untilDone(ctx, "save feed cursor", func(ctx context.Context) error {
+				return r.saveCursor(ctx, cursor)
+			}); err != nil {
 				return err
 			}
 		}
@@ -192,43 +204,66 @@ func sleep(ctx context.Context, d time.Duration) bool {
 	}
 }
 
-func (r *Router) resyncUntilDone(ctx context.Context) (uint64, error) {
+func (r *Router) untilDone(ctx context.Context, what string, step func(context.Context) error) error {
 	for {
-		cursor, err := r.resync(ctx)
+		err := step(ctx)
 		if err == nil || ctx.Err() != nil {
-			return cursor, err
+			return err
 		}
-		r.log.Error("messaging: resynchronize waiting runs", "error", err)
+		r.log.Error("messaging: "+what, "error", err)
 		if !sleep(ctx, r.retry) {
-			return 0, ctx.Err()
+			return ctx.Err()
 		}
 	}
 }
 
-// resync reads the feed head, then posts notices for every waiting run. Any
-// change after the head is applied again by Run, which is harmless.
+func (r *Router) resyncUntilDone(ctx context.Context) (uint64, error) {
+	var cursor uint64
+	err := r.untilDone(ctx, "resynchronize", func(ctx context.Context) error {
+		var err error
+		cursor, err = r.resync(ctx)
+		return err
+	})
+	return cursor, err
+}
+
+// resync rebuilds everything the skipped part of the feed would have caused,
+// from current state, then saves the feed head as the cursor. It reads the
+// head first, so changes after it are applied again by Run, which is
+// harmless. It posts notices for every waiting run, reconciles every open
+// notice with its wait (resolved, expired, cancelled or gone), and posts the
+// final output of every retained terminal routed run that has no reply
+// record.
 func (r *Router) resync(ctx context.Context) (uint64, error) {
 	page, err := r.rt.Changes(ctx, 0, 1)
 	if err != nil && !errors.Is(err, core.ErrEventGap) {
 		return 0, err
 	}
 	head := page.Head
-	filter := core.RunFilter{States: []core.RuntimeState{core.RuntimeWaiting}}
 	var errs []error
-	for {
-		runs, err := r.rt.Runs(ctx, filter)
+	err = r.eachRun(ctx, core.RunFilter{States: []core.RuntimeState{core.RuntimeWaiting}}, func(runID string) {
+		if err := r.syncRun(ctx, runID); err != nil {
+			errs = append(errs, fmt.Errorf("run %s: %w", runID, err))
+		}
+	})
+	if err != nil {
+		return 0, err
+	}
+	if err := r.reconcileOpen(ctx); err != nil {
+		errs = append(errs, err)
+	}
+	for _, name := range r.order {
+		filter := core.RunFilter{
+			States: []core.RuntimeState{core.RuntimeTerminal}, Labels: map[string]string{LabelChannel: name}, RootsOnly: true,
+		}
+		err := r.eachRun(ctx, filter, func(runID string) {
+			if err := r.replyFinal(ctx, runID); err != nil {
+				errs = append(errs, fmt.Errorf("reply for run %s: %w", runID, err))
+			}
+		})
 		if err != nil {
 			return 0, err
 		}
-		for _, run := range runs.Runs {
-			if err := r.syncRun(ctx, run.RunID); err != nil {
-				errs = append(errs, fmt.Errorf("run %s: %w", run.RunID, err))
-			}
-		}
-		if !runs.More {
-			break
-		}
-		filter.After = runs.Next
 	}
 	if err := errors.Join(errs...); err != nil {
 		return 0, err
@@ -236,8 +271,58 @@ func (r *Router) resync(ctx context.Context) (uint64, error) {
 	return head, r.saveCursor(ctx, head)
 }
 
+func (r *Router) eachRun(ctx context.Context, filter core.RunFilter, visit func(runID string)) error {
+	for {
+		runs, err := r.rt.Runs(ctx, filter)
+		if err != nil {
+			return err
+		}
+		for _, run := range runs.Runs {
+			visit(run.RunID)
+		}
+		if !runs.More {
+			return nil
+		}
+		filter.After = runs.Next
+	}
+}
+
+// reconcileOpen brings every notice that is not yet settled on all its
+// channels up to date with its wait: it finishes posting pending ones and
+// settles the rest.
+func (r *Router) reconcileOpen(ctx context.Context) error {
+	var open []string
+	err := r.store.Transaction(ctx, false, func(tx core.StoreTransaction) error {
+		return tx.Scan(openBucket, "", func(key string, _ []byte) error {
+			open = append(open, key)
+			return nil
+		})
+	})
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, key := range open {
+		runID, waitID, _ := strings.Cut(key, "/")
+		if err := r.syncWait(ctx, runID, waitID); err != nil {
+			errs = append(errs, fmt.Errorf("notice for run %s: %w", runID, err))
+		}
+	}
+	return errors.Join(errs...)
+}
+
 func (r *Router) apply(ctx context.Context, change core.RunChange) error {
-	if change.Pruned || change.EventsPruned {
+	if change.Pruned {
+		return r.settleGone(ctx, change.RunID)
+	}
+	if change.EventsPruned {
+		// The events are gone; reconcile from the run's current state.
+		if err := r.syncRun(ctx, change.RunID); err != nil {
+			return err
+		}
+		if change.State == core.RuntimeTerminal {
+			return r.replyFinal(ctx, change.RunID)
+		}
 		return nil
 	}
 	seen := make(map[string]bool)
@@ -269,8 +354,11 @@ func (r *Router) snapshot(ctx context.Context, runID string) (core.RunSnapshot, 
 
 func (r *Router) syncRun(ctx context.Context, runID string) error {
 	snap, ok, err := r.snapshot(ctx, runID)
-	if !ok {
+	if err != nil {
 		return err
+	}
+	if !ok {
+		return r.settleGone(ctx, runID)
 	}
 	for _, wait := range snap.Waits {
 		if err := r.syncWaitSnapshot(ctx, snap, wait); err != nil {
@@ -282,15 +370,43 @@ func (r *Router) syncRun(ctx context.Context, runID string) error {
 
 func (r *Router) syncWait(ctx context.Context, runID, waitID string) error {
 	snap, ok, err := r.snapshot(ctx, runID)
-	if !ok {
+	if err != nil {
 		return err
 	}
-	for _, wait := range snap.Waits {
-		if wait.ID == waitID {
-			return r.syncWaitSnapshot(ctx, snap, wait)
+	if ok {
+		for _, wait := range snap.Waits {
+			if wait.ID == waitID {
+				return r.syncWaitSnapshot(ctx, snap, wait)
+			}
 		}
 	}
-	return nil
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.settle(ctx, runID, waitID, goneSettlement)
+}
+
+// goneSettlement settles notices whose run or wait is no longer retained.
+var goneSettlement = Settlement{State: core.WaitCancelled, Reason: "the run is no longer retained"}
+
+// settleGone settles every notice of a run that retention deleted.
+func (r *Router) settleGone(ctx context.Context, runID string) error {
+	var waitIDs []string
+	err := r.store.Transaction(ctx, false, func(tx core.StoreTransaction) error {
+		return tx.Scan(waitsBucket, runID+"/", func(key string, _ []byte) error {
+			waitIDs = append(waitIDs, strings.TrimPrefix(key, runID+"/"))
+			return nil
+		})
+	})
+	if err != nil {
+		return err
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var errs []error
+	for _, waitID := range waitIDs {
+		errs = append(errs, r.settle(ctx, runID, waitID, goneSettlement))
+	}
+	return errors.Join(errs...)
 }
 
 func (r *Router) syncWaitSnapshot(ctx context.Context, snap core.RunSnapshot, wait core.WaitSnapshot) error {
@@ -302,7 +418,7 @@ func (r *Router) syncWaitSnapshot(ctx context.Context, snap core.RunSnapshot, wa
 	if wait.State == core.WaitPending {
 		return r.post(ctx, snap, wait)
 	}
-	return r.settle(ctx, snap.RunID, wait)
+	return r.settle(ctx, snap.RunID, wait.ID, settlementFor(wait))
 }
 
 // post records a notice for a pending wait, then posts it to every channel
@@ -321,6 +437,9 @@ func (r *Router) post(ctx context.Context, snap core.RunSnapshot, wait core.Wait
 		}
 		rec = noticeRecord{Version: recordVersion, Notice: noticeFor(token, snap, wait), ActionDigest: wait.ActionDigest}
 		if err := putJSON(tx, noticesBucket, token, rec); err != nil {
+			return err
+		}
+		if err := tx.Put(openBucket, waitKey(snap.RunID, wait.ID), nil); err != nil {
 			return err
 		}
 		return tx.Put(waitsBucket, waitKey(snap.RunID, wait.ID), []byte(token))
@@ -360,26 +479,27 @@ func (r *Router) post(ctx context.Context, snap core.RunSnapshot, wait core.Wait
 
 // settle edits every posted copy of a settled wait's notice to show the
 // outcome.
-func (r *Router) settle(ctx context.Context, runID string, wait core.WaitSnapshot) error {
+func (r *Router) settle(ctx context.Context, runID, waitID string, s Settlement) error {
 	var rec noticeRecord
 	var found bool
 	err := r.store.Transaction(ctx, false, func(tx core.StoreTransaction) error {
 		var err error
-		found, err = r.recordForWait(tx, runID, wait.ID, &rec)
+		found, err = r.recordForWait(tx, runID, waitID, &rec)
 		return err
 	})
 	if err != nil || !found {
 		return err
 	}
-	s := settlementFor(wait)
-	rec.Settlement = &s
+	if rec.Settlement == nil {
+		rec.Settlement = &s
+	}
 	var errs []error
 	for _, name := range r.order {
 		ref, posted := rec.Posted[name]
 		if !posted || rec.Settled[name] {
 			continue
 		}
-		if err := r.channels[name].Settle(ctx, ref, rec.Notice, s); err != nil {
+		if err := r.channels[name].Settle(ctx, ref, rec.Notice, *rec.Settlement); err != nil {
 			errs = append(errs, fmt.Errorf("settle %s: %w", name, err))
 			continue
 		}
@@ -388,8 +508,15 @@ func (r *Router) settle(ctx context.Context, runID string, wait core.WaitSnapsho
 		}
 		rec.Settled[name] = true
 	}
+	done := len(errs) == 0
 	if err := r.store.Transaction(ctx, true, func(tx core.StoreTransaction) error {
-		return putJSON(tx, noticesBucket, rec.Notice.Token, rec)
+		if err := putJSON(tx, noticesBucket, rec.Notice.Token, rec); err != nil {
+			return err
+		}
+		if done {
+			return tx.Delete(openBucket, waitKey(runID, waitID))
+		}
+		return nil
 	}); err != nil {
 		return err
 	}

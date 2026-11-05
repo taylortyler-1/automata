@@ -14,8 +14,10 @@
 // the run's final output is posted back to that chat.
 //
 // The router keeps its own small records (notice tokens, posted messages,
-// feed cursor, sent replies) in the [core.Store] it is given, usually the
-// runtime's own store, so a restart neither loses nor reposts notices.
+// open notices, feed cursor, sent replies) in the [core.Store] it is given,
+// usually the runtime's own store, so a restart or a retention gap loses
+// nothing. Delivery to chat is at least once: a crash between sending a
+// message and recording it repeats that message on restart.
 // Platform adapters live in subpackages, for example
 // [github.com/taylortyler-1/automata/extensions/messaging/telegram].
 package messaging
