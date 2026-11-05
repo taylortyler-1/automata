@@ -8,4 +8,5 @@ use (
 	./examples/durable_host
 	./examples/durable_typed
 	./examples/openai
+	./examples/telegram
 )

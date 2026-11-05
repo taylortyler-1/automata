@@ -42,6 +42,7 @@ It is built for agents inside web servers and job workers, not notebooks.
 | `extensions/tavily` | Tavily backend for `tools.WebSearch` |
 | `extensions/mcp` | Model Context Protocol through the official Go SDK: `mcpclient` turns a server's tools into `core.Tool`s, `mcpserver` serves `core.Tool`s |
 | `extensions/httpserver` | `net/http` and SSE API over a `Runtime`: admission, listing, status, resumable event and change streams, cancellation, wait answers, manifests |
+| `extensions/messaging` | Chat approvals, questions and wake-ups over the runtime change feed; `messaging/telegram` is the first channel |
 | `host` | `host.Main`: opens the store, registers definitions, recovers, applies retention, serves the HTTP API, and runs host-owned background work such as a scheduler |
 | `retry`, `tracing` | Backoff policy and span interfaces used by core |
 | `examples/*` (modules) | Runnable demos (see [Examples](#examples)) |
